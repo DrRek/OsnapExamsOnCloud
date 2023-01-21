@@ -12,7 +12,7 @@ export const msalConfig = {
         // Full directory URL, in the form of https://login.microsoftonline.com/<tenant-id>
         authority: "https://login.microsoftonline.com/f11f104c-4a12-4c33-8859-f375e69f4161",
         // Full redirect URL, in form of http://localhost:3000
-        redirectUri: window.location.host.includes("localhost") ? "http://localhost:3000/" : "temp",
+        redirectUri: window.location.host.includes("localhost") ? "http://localhost:3000/" : "https://drrek.github.io/OsnapExamsOnCloud/",
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored
