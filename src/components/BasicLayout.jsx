@@ -1,7 +1,7 @@
 import React from 'react';
 import ServiceNavigation from './ServiceNavigation.jsx';
 import { AppLayout, BreadcrumbGroup, Button, HelpPanel, Icon } from "@cloudscape-design/components"
-import { delete_all_resource_groups, testFunction } from '../utils/test.js';
+import { delete_all_resource_groups, send_email, testFunction } from '../utils/test.js';
 import { APP_PREFIX } from '../utils/constants.js';
 
 
@@ -12,7 +12,7 @@ export default function Basic() {
       navigation={<ServiceNavigation />}
       breadcrumbs={<Breadcrumbs />}
       content={<Content />}
-      contentType="default" 
+      contentType="default"
       tools={Tools}
     />
   );
@@ -36,8 +36,9 @@ const Breadcrumbs = () => (
 
 // Main content area (fill it in with components!)
 const Content = () => <div>
-<Button onClick={testFunction}>Test</Button>  
-  <Button onClick={() => delete_all_resource_groups(APP_PREFIX)}>Delete all resources</Button>  
+  <Button onClick={testFunction}>Test</Button>
+  <Button onClick={() => delete_all_resource_groups(APP_PREFIX)}>Delete all resources</Button>
+  <Button onClick={() => send_email("lucareccia@hotmail.it", "test sub", "questa\nè\nuna\nprova")}>Send test email to lucareccia@hotmail.it</Button>
 </div>;
 
 // Help panel content

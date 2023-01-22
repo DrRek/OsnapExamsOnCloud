@@ -1,17 +1,17 @@
 import { signIn as signInTrue, getTokenPopup } from './authPopup'
-import { tokenRequest } from './authConfig';
+import { loginRequest, tokenRequest } from './authConfig';
 import { APP_PREFIX } from './constants';
 
 export const signIn = async () => {
   signInTrue()
 }
 
-export const make_api_call = async (api, version, method = "GET", data = null, other_params = "") => {
+export const make_api_call = async (api, version, method = "GET", data = null, other_params = "", tokenType = tokenRequest) => {
   const subscriptionId = "9d2809c0-8f6a-4b00-99d1-fad6f76fbe59";
 
-  const tokens = await getTokenPopup(tokenRequest);
+  const tokens = await getTokenPopup(tokenType);
 
-  if(tokens === undefined){
+  if (tokens === undefined) {
     signIn()
     return
   }
@@ -181,6 +181,52 @@ export const create_virtual_machine = async (name, username, password, networkIn
       cloudexams: "test"
     }
   })
+
+export const send_email = async (to, subject, body) => {
+  const tokens = await getTokenPopup(loginRequest);
+
+  if (tokens === undefined) {
+    console.error("User needs to login before sending email")
+    signIn()
+    return
+  }
+
+  var options = {
+    method: 'POST',
+    headers: {
+      'Authorization': "Bearer " + tokens.accessToken,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      message: {
+        subject: subject,
+        body: {
+          contentType: 'Text',
+          content: body
+        },
+        toRecipients: [
+          {
+            emailAddress: {
+              address: to
+            }
+          }
+        ]
+      },
+      sveToSentItems: false
+    })
+  };
+  var graphEndpoint = 'https://graph.microsoft.com/v1.0/me/sendMail'
+
+  const response = await fetch(graphEndpoint, options)
+  if(response.status !== 202){
+    console.error("there was some error sending the email")
+    console.log(response)
+  } else {
+    console.log("correctly sent email")
+  }
+  return true
+}
+
 
 
 const replicated_workflow = async () => {
