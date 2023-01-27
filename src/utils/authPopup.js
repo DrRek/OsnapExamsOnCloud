@@ -27,33 +27,23 @@ function selectAccount() {
     }
 }
 
-function handleResponse(response) {
-
-    /**
-     * To see the full list of response object properties, visit:
-     * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/request-response-object.md#response
-     */
-
-    if (response !== null) {
-        username = response.account.username;
-        alert(username);
-    } else {
-        selectAccount();
-    }
-}
-
-export function signIn() {
+export async function signIn() {
 
     /**
      * You can pass a custom request object below. This will override the initial configuration. For more information, visit:
      * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/request-response-object.md#request
      */
+    try {
+        const response = await myMSALObj.loginPopup(loginRequest)
 
-    myMSALObj.loginPopup(loginRequest)
-        .then(handleResponse)
-        .catch(error => {
-            console.error(error);
-        });
+        if (response !== null) {
+            username = response.account.username;
+        } else {
+            selectAccount();
+        }
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 function signOut() {

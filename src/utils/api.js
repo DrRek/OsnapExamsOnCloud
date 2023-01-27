@@ -1,18 +1,19 @@
-import { signIn as signInTrue, getTokenPopup } from './authPopup'
+import { signIn, getTokenPopup } from './authPopup'
 import { loginRequest, tokenRequest } from './authConfig';
 import { APP_PREFIX, SUB_ID } from './constants';
 
-export const signIn = async () => {
-  signInTrue()
+const get_token = async (tokenType) => {
+  const tokens = await getTokenPopup(tokenType);
+  if (tokens === undefined) {
+    console.log("token not found, loggin in")
+    await signIn()
+    return await getTokenPopup(tokenType);
+  }
+  return tokens
 }
 
 export const make_api_call = async (api, version, method = "GET", data = null, other_params = "", tokenType = tokenRequest, return_all_response = false) => {
-  const tokens = await getTokenPopup(tokenType);
-
-  if (tokens === undefined) {
-    signIn()
-    return
-  }
+  const tokens = await get_token(tokenType)
 
   var options = {
     method: method,
@@ -29,7 +30,10 @@ export const make_api_call = async (api, version, method = "GET", data = null, o
    * TODO: I could return the header if the response is 202
   */
   return return_all_response ?
-    response :
+    {
+      headers: [...response.headers.entries()],
+      body: await response.text()
+    } :
     (response.headers.get("content-length") != 0 ? response.json() : null)
 }
 
@@ -56,8 +60,8 @@ export const delete_all_resource_groups = async (prefix) => {
   return await Promise.all(all_resources.filter(({ name }) => name.startsWith(prefix)).map(({ name }) => delete_resource_group(name)))
 }
 
-export const create_virtual_network = async (name, resourceGroupName = name, location = "westeurope") =>
-  make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Network/virtualNetworks/${name}`, "2022-07-01", "PUT", {
+export const create_virtual_network = async (resourceGroupName, location = "westeurope") =>
+  make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Network/virtualNetworks/customVirtualNetwork`, "2022-07-01", "PUT", {
     location: location,
     properties: {
       addressSpace: {
@@ -69,15 +73,15 @@ export const create_virtual_network = async (name, resourceGroupName = name, loc
     }
   })
 
-export const create_subnet = async (name, resourceGroupName = name, virtualNetworkName = name) =>
-  make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Network/virtualNetworks/${virtualNetworkName}/subnets/${name}`, "2022-07-01", "PUT", {
+export const create_subnet = async (resourceGroupName) =>
+  make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Network/virtualNetworks/customVirtualNetwork/subnets/customSubnet`, "2022-07-01", "PUT", {
     properties: {
       addressPrefix: "10.0.0.0/24"
     }
   })
 
-export const create_public_ip_address = async (name, resourceGroupName = name, location = "westeurope") =>
-  make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Network/publicIPAddresses/${name}`, "2022-07-01", "PUT", {
+export const create_public_ip_address = async (resourceGroupName, location = "westeurope") =>
+  make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Network/publicIPAddresses/customPublicIP`, "2022-07-01", "PUT", {
     location: location,
     sku: {
       name: "Standard"
@@ -91,24 +95,24 @@ export const create_public_ip_address = async (name, resourceGroupName = name, l
     }
   })
 
-const get_public_ip_address = async (name, resourceGroupName = name) =>
-  make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Network/publicIPAddresses/${name}`, "2022-07-01")
+const get_public_ip_address = async (resourceGroupName) =>
+  make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Network/publicIPAddresses/customPublicIP`, "2022-07-01")
 
 async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export const wait_for_ip_address = async (name, resourceGroupName = name) => {
+export const wait_for_ip_address = async (resourceGroupName) => {
   while (true) {
-    const result = await get_public_ip_address(name, resourceGroupName)
+    const result = await get_public_ip_address(resourceGroupName)
     if (result.properties.ipAddress)
       return result
     await sleep(1000)
   }
 }
 
-export const create_network_security_group = async (name, resourceGroupName = name, location = "westeurope") =>
-  make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Network/networkSecurityGroups/${name}`, "2022-07-01", "PUT", {
+export const create_network_security_group = async (resourceGroupName, location = "westeurope") =>
+  make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Network/networkSecurityGroups/customSecurityGroup`, "2022-07-01", "PUT", {
     location: location,
     properties: {
       securityRules: [{
@@ -154,8 +158,8 @@ export const create_network_interface = async (name, networkSecurityGroupId, sub
     }
   })
 
-export const create_virtual_machine = async (vmName, username, password, networkInterfaceId, resourceGroupName = vmName, location = "westeurope") =>
-  make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Compute/virtualMachines/${vmName}`, "2021-03-01", "PUT", {
+export const create_virtual_machine = async (resourceGroupName, username, password, networkInterfaceId, location = "westeurope") =>
+  make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Compute/virtualMachines/customVirtualMachine`, "2021-03-01", "PUT", {
     location: location,
     properties: {
       storageProfile: {
@@ -173,7 +177,7 @@ export const create_virtual_machine = async (vmName, username, password, network
         vmSize: "Standard_DS1_v2"
       },
       osProfile: {
-        computerName: "EXAM-PC",
+        computerName: "OSNAP-EXAM-VM",
         adminUsername: username,
         adminPassword: password
       },
@@ -188,8 +192,8 @@ export const create_virtual_machine = async (vmName, username, password, network
     }
   })
 
-export const create_user_in_vm = async (vmName, username, password, resourceGroupName = vmName) => {
-  const resp = await make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Compute/virtualMachines/${vmName}/runCommand`, "2019-03-01", "POST", {
+export const create_user_in_vm = async (resourceGroupName, username, password) => {
+  const resp = await make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Compute/virtualMachines/customVirtualMachine/runCommand`, "2019-03-01", "POST", {
     commandId: "RunPowerShellScript",
     script: [
       //`Write-Output 'Hello, World!'`
@@ -198,7 +202,8 @@ export const create_user_in_vm = async (vmName, username, password, resourceGrou
       `Add-LocalGroupMember -Group 'Remote Desktop Users' -Member '${username}'`
     ]
   }, undefined, undefined, true)
-
+  return resp
+/*
   const tokens = await getTokenPopup(tokenRequest);
 
   const fetchUrl = resp.headers.get('azure-asyncOperation')
@@ -208,6 +213,7 @@ export const create_user_in_vm = async (vmName, username, password, resourceGrou
       break
     await sleep(1000)
   }
+  */
 }
 
 export const send_email = async (to, subject, body) => {
@@ -366,15 +372,38 @@ const replicated_workflow = async () => {
   console.log("create user/password")
   const commandRes = await create_user_in_vm(new_name, "luca", "th1sIsA32sda")
   console.log("Command result")
-  //console.log(commandRes)
-  /**
-  xfreerdp /v:20.93.167.13 /u:veryweirdusername /p:V3ryC0m6mmple3.xPewo6rd
-  xfreerdp /v:40.114.146.105 /u:luca /p:th1sIsA32sda
-   */
+
   console.log("end")
 }
 
 export const testFunction = async () => {
 
   replicated_workflow()
+}
+
+
+const DB_NAME = "exams"
+
+export const db_list_exams = async () => {
+  const raw_exams = JSON.parse(localStorage.getItem(DB_NAME) || "{}")
+  return Object.keys(raw_exams).map(key => raw_exams[key])
+}
+
+export const db_is_prefix_unique = async (newID) => {
+  const exams = await db_list_exams()
+  return !exams.some(({id}) => id.startsWith(newID))
+}
+
+export const db_update_exam = async (exam, reason) => {
+  console.log("db_update_exam for reason: "+reason)
+  console.log(exam)
+  exam["status"].push({
+    "timestamp": Date.now()/1000,
+    "reason": reason
+  })
+  const raw_exams = JSON.parse(localStorage.getItem(DB_NAME) || "{}")
+  localStorage.setItem(DB_NAME, JSON.stringify({
+    ...raw_exams,
+    [exam.id]: exam
+  }))
 }

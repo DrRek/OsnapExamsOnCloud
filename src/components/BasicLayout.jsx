@@ -1,7 +1,7 @@
 import React from 'react';
 import ServiceNavigation from './ServiceNavigation.jsx';
 import { AppLayout, BreadcrumbGroup, Button, HelpPanel, Icon } from "@cloudscape-design/components"
-import { create_docx_document, delete_all_resource_groups, grant_access_to_doc, send_email, testFunction } from '../utils/test.js';
+import { create_docx_document, delete_all_resource_groups, grant_access_to_doc, send_email, testFunction } from '../utils/api.js';
 import { APP_PREFIX } from '../utils/constants.js';
 
 
