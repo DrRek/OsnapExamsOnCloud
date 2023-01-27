@@ -25,6 +25,7 @@ import {
   wait_for_ip_address
 } from '../utils/api';
 import pwlib from '../utils/pwlib'
+import { APP_PREFIX } from '../utils/constants'
 
 export default function ExamsPanel({ exam, onChange }) {
   return (
@@ -153,18 +154,15 @@ export function NewExamsForm({ loadHelpPanelContent }) {
       students_email.forEach(async student_email => {
 
         const exam = {
-          id: raw_exam.prefix.value,
-          students: raw_exam.raw_students.value.split("\n").map(i=>i.trim()),
-          status: []
+          status: [],
+          email: student_email
         }
-
-        exam["email"] = student_email
         com(`creating resources for ${exam["email"]}`)
 
         exam["name"] = student_email.split("@")[0].replace(/[^A-Za-z0-9]/g, "")
         com(`using sanified name: ${exam["name"]}`)
 
-        exam["id"] = `${raw_exam.prefix.value}-${exam["name"]}-${Math.floor(Math.random() * 1000)}`
+        exam["id"] = `${APP_PREFIX}${raw_exam.prefix.value}-${exam["name"]}-${Math.floor(Math.random() * 1000)}`
         com(`using id name: ${exam["id"]}`)
 
         await db_update_exam(exam, "started exam creation")
