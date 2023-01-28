@@ -18,3 +18,5 @@ export const E_CREATE_DOC_RESP = "createDocResp"
 export const E_SHARED_DOC_RESP = "sharedDocResp"
 export const E_USERPASS = "userPassword"
 export const E_USERUSER = "userUsername"
+
+export const BASE_PATH = "/OsnapExamsOnCloud"
