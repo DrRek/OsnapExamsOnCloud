@@ -1,7 +1,7 @@
 import React from 'react';
 import ServiceNavigation from './ServiceNavigation.jsx';
 import { AppLayout, BreadcrumbGroup, Button, HelpPanel, Icon } from "@cloudscape-design/components"
-import { create_docx_document, delete_all_resource_groups, grant_access_to_doc, send_email, testFunction } from '../utils/api.js';
+import { check_create_user_in_vm, check_resource_group_existance, create_docx_document, delete_all_resource_groups, grant_access_to_doc, send_email, testFunction } from '../utils/api.js';
 import { APP_PREFIX } from '../utils/constants.js';
 
 
@@ -41,6 +41,8 @@ const Content = () => <div>
   <Button onClick={() => send_email("lucareccia@hotmail.it", "test sub", "questa\nè\nuna\nprova")}>Send test email to lucareccia@hotmail.it</Button>
   <Button onClick={() => create_docx_document("test")}>Test create file</Button>
   <Button onClick={() => grant_access_to_doc("test", "lucareccia@hotmail.it")}>To grant access to file</Button>
+  <Button onClick={() => check_resource_group_existance("Managment-ExamsOnTheCloud2")}>Check rg existance</Button>
+  <Button onClick={() => check_create_user_in_vm(JSON.parse(localStorage.getItem("exams"))["ExamsOnTheCloud-prova2-lucareccia-320"])}>Check create user status</Button>
 </div>;
 
 // Help panel content

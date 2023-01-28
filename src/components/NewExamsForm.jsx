@@ -25,7 +25,7 @@ import {
   wait_for_ip_address
 } from '../utils/api';
 import pwlib from '../utils/pwlib'
-import { APP_PREFIX } from '../utils/constants'
+import { APP_PREFIX, E_EMAIL, E_LOGS, E_STATUS, E_STATUS_VALUES } from '../utils/constants'
 
 export default function ExamsPanel({ exam, onChange }) {
   return (
@@ -154,10 +154,11 @@ export function NewExamsForm({ loadHelpPanelContent }) {
       students_email.forEach(async student_email => {
 
         const exam = {
-          status: [],
-          email: student_email
+          [E_LOGS]: [],
+          email: student_email,
+          [E_STATUS]: E_STATUS_VALUES.CREATING
         }
-        com(`creating resources for ${exam["email"]}`)
+        com(`creating resources for ${exam[E_EMAIL]}`)
 
         exam["name"] = student_email.split("@")[0].replace(/[^A-Za-z0-9]/g, "")
         com(`using sanified name: ${exam["name"]}`)

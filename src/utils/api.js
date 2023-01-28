@@ -1,6 +1,6 @@
 import { signIn, getTokenPopup } from './authPopup'
 import { loginRequest, tokenRequest } from './authConfig';
-import { APP_PREFIX, SUB_ID } from './constants';
+import { APP_PREFIX, E_CREATE_USER_REQ, E_LOGS, SUB_ID } from './constants';
 
 const get_token = async (tokenType) => {
   const tokens = await getTokenPopup(tokenType);
@@ -32,9 +32,25 @@ export const make_api_call = async (api, version, method = "GET", data = null, o
   return return_all_response ?
     {
       headers: [...response.headers.entries()],
-      body: await response.text()
+      body: await response.text(),
+      status: response.status
     } :
     (response.headers.get("content-length") != 0 ? response.json() : null)
+} 
+
+export const check_resource_group_existance = async name => {
+  const resp = await make_api_call(`resourcegroups/${name}`, "2021-04-01", "HEAD", null, "", tokenRequest, true)
+  if(resp.status === 204){
+    console.log("resource group exists")
+    return true
+  } else if(resp.status === 404){
+    console.log("resource group does not exists")
+    return false
+  } else {
+    console.error("error while trying to understand the resource group status")
+    console.log(`Resource group name fetched: ${name}`)
+    return true
+  }
 }
 
 export const list_resource_groups = async () =>
@@ -214,6 +230,28 @@ export const create_user_in_vm = async (resourceGroupName, username, password) =
     await sleep(1000)
   }
   */
+}
+
+export const check_create_user_in_vm = async (exam) => {
+  const headers = exam[E_CREATE_USER_REQ].headers
+  const check_url = headers.find(i => i[0] == "location")[1]
+
+  const tokens = await get_token(tokenRequest)
+  var options = {
+    method: "GET",
+    headers: {
+      'Authorization': "Bearer " + tokens.accessToken,
+    },
+  };
+
+  const response = await fetch(check_url, options)
+  return response.status === 202 ? 
+    false :
+    ({
+      headers: [...response.headers.entries()],
+      body: await response.text(),
+      status: response.status
+    })
 }
 
 export const send_email = async (to, subject, body) => {
@@ -397,7 +435,7 @@ export const db_is_prefix_unique = async (newID) => {
 export const db_update_exam = async (exam, reason) => {
   console.log("db_update_exam for reason: "+reason)
   console.log(exam)
-  exam["status"].push({
+  exam[E_LOGS].push({
     "timestamp": Date.now()/1000,
     "reason": reason
   })

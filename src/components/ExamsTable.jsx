@@ -2,46 +2,70 @@
 // SPDX-License-Identifier: MIT-0
 import React from 'react';
 import { useCollection } from '@cloudscape-design/collection-hooks';
-import { Button, Pagination, Table, TextFilter, SpaceBetween, Link } from '@cloudscape-design/components';
+import { Button, Pagination, Table, TextFilter, SpaceBetween, Link, StatusIndicator } from '@cloudscape-design/components';
 import { paginationLabels, examsSelectionLabels, addColumnSortLabels, getFilterCounterText } from '../tables/labels';
 import { TableHeader } from './TableHeader';
 import { useHistory } from 'react-router-dom';
+import { E_EMAIL, E_ID, E_LOGS, E_STATUS, E_STATUS_VALUES } from '../utils/constants';
+import Moment from 'react-moment';
 
 const COLUMN_DEFINITIONS = addColumnSortLabels([
   {
-    id: 'id',
-    sortingField: 'id',
+    id: E_ID,
+    sortingField: E_ID,
     header: 'Exam ID',
-    cell: item => (
-      <div>
-        <Link href={`#${item.id}`}>{item.id}</Link>
-      </div>
-    ),
+    cell: item => item[E_ID],
     minWidth: 180,
   },
   {
     id: 'email',
     sortingField: 'email',
     header: 'Student',
-    cell: item => item.email,
+    cell: item => item[E_EMAIL],
     minWidth: 120,
   },
   {
-    id: 'startTime',
-    sortingField: 'startTime',
-    cell: item => item.startTime,
+    id: E_STATUS,
+    sortingField: E_STATUS,
+    header: 'Status',
+    cell: item => {
+      const st = item[E_STATUS]
+      if(st == E_STATUS_VALUES.CREATING)
+        return <StatusIndicator type="in-progress">Creating</StatusIndicator>
+      if(st == E_STATUS_VALUES.RUNNING)
+        return <StatusIndicator>Running</StatusIndicator>
+      if(st == E_STATUS_VALUES.STOPPING)
+        return <StatusIndicator type="pending">Stopping</StatusIndicator>
+      if(st == E_STATUS_VALUES.STOPPED)
+        return <StatusIndicator type="stopped">Stopped</StatusIndicator>
+      return <StatusIndicator type="error">Invalid</StatusIndicator>
+    },
+    minWidth: 120,
+  },
+  {
+    id: 'timestamp',
+    cell: item => 
+      <Moment date={new Date(item[E_LOGS][0]["timestamp"]*1000)} format="hh:mm DD/MM/YY"></Moment>,
+    sortingComparator: (a,b) => 
+      a[E_LOGS][0]["timestamp"] < b[E_LOGS][0]["timestamp"],
     header: 'Start time',
     minWidth: 160,
   },
   {
     id: 'docLink',
     header: 'Exam report',
-    cell: item => item.docLink,
+    cell: item => "not yet implemented",
+    minWidth: 100,
+  },
+  {
+    id: 'latest log',
+    header: 'Latest log',
+    cell: item => item[E_LOGS][item[E_LOGS].length-1]["reason"],
     minWidth: 100,
   }
 ]);
 
-export default function ExamsTable({ exams, selectedItems, onSelectionChange }) {
+export default function ExamsTable({ exams, selectedExams, onSelectionChange, refreshing, onRefresh, onStopExams, onSendEmail, stoppingexams, sendingloginemail }) {
   const { items, actions, filteredItemsCount, collectionProps, filterProps, paginationProps } = useCollection(
     exams,
     {
@@ -60,7 +84,7 @@ export default function ExamsTable({ exams, selectedItems, onSelectionChange }) 
   return (
     <Table
       {...collectionProps}
-      selectedItems={selectedItems}
+      selectedItems={selectedExams}
       onSelectionChange={onSelectionChange}
       columnDefinitions={COLUMN_DEFINITIONS}
       items={items}
@@ -74,14 +98,14 @@ export default function ExamsTable({ exams, selectedItems, onSelectionChange }) 
           title="Ongoing Exams"
           actionButtons={
             <SpaceBetween size="xs" direction="horizontal">
-              <Button>Refresh</Button>
-              <Button disabled={selectedItems.length === 0}>Stop exams</Button>
-              <Button disabled={selectedItems.length === 0}>Send login email</Button>
+              <Button disabled={refreshing} onClick={onRefresh}>Refresh</Button>
+              <Button disabled={selectedExams.length === 0 || stoppingexams} onClick={onStopExams}>Stop exams</Button>
+              <Button disabled={selectedExams.length === 0 || sendingloginemail} onClick={onSendEmail}>Send login email</Button>
               <Button variant="primary" onClick={() => history.push("/exams/new")}>Create exams</Button>
             </SpaceBetween>
           }
           totalItems={exams}
-          selectedItems={selectedItems}
+          selectedItems={selectedExams}
         />
       }
       filter={
