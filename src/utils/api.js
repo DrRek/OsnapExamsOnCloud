@@ -347,6 +347,33 @@ export const grant_access_to_doc = async (name, email) => {
   return await get_jsonable_response(response, true)
 } 
 
+export const remove_access_to_doc = async (name) => {
+  const tokens = await get_token(loginRequest);
+
+  const options = {
+    method: 'GET',
+    headers: {
+      'Authorization': "Bearer " + tokens.accessToken
+    }
+  };
+  const graphEndpoint = `https://graph.microsoft.com/v1.0/me/drive/root:/ExamsOnTheCloud/${name}:/permissions`
+
+  const response = await fetch(graphEndpoint, options)
+  const jsonResponse = await response.json()
+  for(const invitations of jsonResponse["value"]){
+    const options2 = {
+      method: 'DELETE',
+      headers: {
+        'Authorization': "Bearer " + tokens.accessToken
+      }
+    };
+    var graphEndpoint2 = `https://graph.microsoft.com/v1.0/me/drive/root:/ExamsOnTheCloud/${name}:/permissions/${invitations.id}`
+
+    await fetch(graphEndpoint2, options2)
+  }
+  return
+}
+
 const replicated_workflow = async () => {
   const new_name = APP_PREFIX + Math.floor(Math.random() * 1000)
 

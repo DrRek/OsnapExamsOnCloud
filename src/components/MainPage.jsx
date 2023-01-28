@@ -8,7 +8,7 @@ import {
 import ServiceNavigation from './ServiceNavigation.jsx';
 import { appLayoutLabels } from '../tables/labels';
 import ExamsTable from './ExamsTable.jsx';
-import { check_create_user_in_vm, check_resource_group_existance, db_list_exams, db_update_exam, delete_resource_group, grant_access_to_doc, send_email } from '../utils/api.js';
+import { check_create_user_in_vm, check_resource_group_existance, db_list_exams, db_update_exam, delete_resource_group, grant_access_to_doc, remove_access_to_doc, send_email } from '../utils/api.js';
 import { E_CREATE_DOC_RESP, E_CREATE_USER_RESP, E_DELETE_RG_RESP, E_EMAIL, E_ID, E_SHARED_DOC_RESP, E_STATUS, E_STATUS_VALUES, E_USERPASS, E_USERUSER } from '../utils/constants.js';
 
 const MainPage = ({ notifications }) => {
@@ -43,7 +43,8 @@ const MainPage = ({ notifications }) => {
         //check that RG does not exist
         const rg_exists = await check_resource_group_existance(exam[E_ID])
 
-        //TODO: check that doc sharing has been disabled
+        //check that doc sharing has been disabled
+        await remove_access_to_doc(exam[E_CREATE_DOC_RESP]["body"]["name"])
 
         //if these checks are sucessfull move the status to STOPPED
         if(!rg_exists)
