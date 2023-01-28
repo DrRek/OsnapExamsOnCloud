@@ -55,7 +55,7 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
   {
     id: 'docLink',
     header: 'Exam report',
-    cell: item => <Link external href={item[E_CREATE_DOC_RESP]["body"]["webUrl"]}>{item[E_CREATE_DOC_RESP]["body"]["name"]}</Link>,
+    cell: item => item[E_CREATE_DOC_RESP] ? <Link external href={item[E_CREATE_DOC_RESP]["body"]["webUrl"]}>{item[E_CREATE_DOC_RESP]["body"]["name"]}</Link> : "invalid link",
     minWidth: 100,
   },
   {

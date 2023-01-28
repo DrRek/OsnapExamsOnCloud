@@ -21,7 +21,7 @@ const MainPage = ({ notifications }) => {
     setRefreshing(true)
     const temp_exams = await db_list_exams()
 
-    temp_exams.forEach(async exam => {
+    for(const exam of temp_exams){
       if(exam[E_STATUS] === E_STATUS_VALUES.CREATING){ // what to do if exam is being created
         //check that Resource Group exists
         const rg_exists = await check_resource_group_existance(exam[E_ID])
@@ -56,17 +56,19 @@ const MainPage = ({ notifications }) => {
         console.error("Exam is in an invalid state")
         console.log(exam)
       }
-    })
+    }
 
     setExams(await db_list_exams())
     setRefreshing(false)
   }
 
+  console.log(exams)
+
   const [sendingloginemail, setSendingloginemail] = useState(false)
-  const sendEmail = () => {
+  const sendEmail = async () => {
     setSendingloginemail(true)
 
-    selectedExams.forEach(async exam => {
+    for(const exam of selectedExams){
       const email = exam[E_EMAIL]
       const doc = exam[E_CREATE_DOC_RESP]["body"]["name"]
 
@@ -98,7 +100,7 @@ Password: ${exam[E_USERPASS]}</pre><br/>
 
       await send_email(email, email_subject, email_body, attachments)
       db_update_exam(exam, "start exam email sent")
-    })    
+    }
 
     setSendingloginemail(false)
     setSelectedExams([])
@@ -108,14 +110,14 @@ Password: ${exam[E_USERPASS]}</pre><br/>
   const [stoppingexams, setStoppingexams] = useState(false)
   const stopExams = async () => {
     setStoppingexams(true)
-    selectedExams.forEach(async exam => {
+    for (const exam of selectedExams){
       exam[E_DELETE_RG_RESP] = await delete_resource_group(exam[E_ID])
       exam[E_STATUS] = E_STATUS_VALUES.STOPPING
 
       //TODO disable access to doc
 
       db_update_exam(exam, "stopping exam")
-    })
+    }
     setStoppingexams(false)
     setSelectedExams([])
     refreshExams()
@@ -169,7 +171,7 @@ const HelpOnSide = (
       </div>
     }
   >
-    <p>
+    <div>
       <h4>Steps to launch an exam</h4>
       <ul>
         <li>
@@ -197,7 +199,7 @@ const HelpOnSide = (
           <div>Each student will either send or use the integrated doc to submit their report. Navigate to "Exam report folder" and save all the reports in a safe way.</div>
         </li>
       </ul>
-    </p>
+    </div>
   </HelpPanel>
 );
 

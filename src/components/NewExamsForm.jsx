@@ -216,9 +216,9 @@ export function NewExamsForm({ loadHelpPanelContent }) {
         await db_update_exam(exam, "created document that will store the exam report")
 
         com(`done creating resources for ${exam["name"]}`)
+      
         setLoadingText(false)
       })
-      
     }
   }
 
