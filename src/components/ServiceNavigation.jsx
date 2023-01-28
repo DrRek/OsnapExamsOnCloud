@@ -1,26 +1,15 @@
 import React from 'react';
 import { withRouter } from 'react-router-dom';
 import { SideNavigation } from "@cloudscape-design/components"
-import { BASE_PATH } from '../utils/constants';
+import { navigate } from '../utils/navigation';
 
 
 function ServiceNavigation(props) {
-  // If the provided link is empty, do not redirect pages
-  function onFollowHandler(ev) {
-    if(!ev.detail.external){
-      ev.preventDefault();
-      if (ev.detail.href) {
-        props.history.push(ev.detail.href);
-      }
-    }
-  }
-
   return (
     <SideNavigation
       header={{ text: 'CloudFront', href: '/' }}
       items={items}
-      //activeHref={`#${props.location.pathname}`}
-      onFollow={onFollowHandler}
+      onFollow={(evt) => navigate(evt, props.history)}
     />
   );
 }

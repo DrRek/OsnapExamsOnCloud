@@ -1,8 +1,9 @@
 import React, { useRef } from 'react';
-import { AppLayout, BreadcrumbGroup, ContentLayout } from '@cloudscape-design/components';
+import { AppLayout, ContentLayout } from '@cloudscape-design/components';
 import ServiceNavigation from './ServiceNavigation';
 import { appLayoutLabels } from '../tables/labels';
 import { NewExamsForm, NewExamsHeader } from './NewExamsForm';
+import { Breadcrumbs } from './Breadcrumbs';
 
 export default function NewExamsPage() {
   const appLayout = useRef();
@@ -18,13 +19,10 @@ export default function NewExamsPage() {
       }
       headerSelector="#header"
       breadcrumbs={
-        <BreadcrumbGroup
+        <Breadcrumbs
           items={[
-            { text: 'ExamsOnTheCloud', href: '/' },
             { text: 'New Exams', href: '#' }
           ]}
-          expandAriaLabel="Show path"
-          ariaLabel="Breadcrumbs"
         />
       }
       navigation={<ServiceNavigation activeHref="#" />}

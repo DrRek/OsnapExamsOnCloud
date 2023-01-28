@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Container,
   Header,
@@ -27,6 +27,8 @@ import {
 } from '../utils/api';
 import pwlib from '../utils/pwlib'
 import { APP_PREFIX, E_CREATE_DOC_RESP, E_EMAIL, E_LOGS, E_STATUS, E_STATUS_VALUES } from '../utils/constants'
+import { useHistory } from 'react-router-dom';
+import { internal_navigate } from '../utils/navigation';
 
 export default function ExamsPanel({ exam, onChange }) {
   return (
@@ -144,6 +146,9 @@ export function NewExamsForm({ loadHelpPanelContent }) {
     console.log(msg)
   }
 
+  const history = useHistory()
+  const go_home = () => internal_navigate("/", history)
+
   const createExam = async () => {
     if(await isExamValid()){
 
@@ -152,8 +157,7 @@ export function NewExamsForm({ loadHelpPanelContent }) {
       const students_email = raw_exam.raw_students.value.split("\n").map(i=>i.trim())
       com(`using student email: ${students_email}`)
 
-      students_email.forEach(async student_email => {
-
+      for (const student_email of students_email) {
         const exam = {
           [E_LOGS]: [],
           email: student_email,
@@ -218,7 +222,8 @@ export function NewExamsForm({ loadHelpPanelContent }) {
         com(`done creating resources for ${exam["name"]}`)
       
         setLoadingText(false)
-      })
+      }
+      go_home()
     }
   }
 
@@ -251,7 +256,7 @@ export function NewExamsForm({ loadHelpPanelContent }) {
     <>
       <BaseFormContent
         onCreate={()=>createExam()}
-        onCancel={()=>{}}
+        onCancel={go_home}
         content={
           <SpaceBetween size="l">
             <ExamsPanel exam={raw_exam} onChange={updateExam} />

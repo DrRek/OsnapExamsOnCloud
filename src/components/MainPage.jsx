@@ -29,7 +29,6 @@ const MainPage = ({ notifications }) => {
         //check that rdp is available
         const check_user_resp = await check_create_user_in_vm(exam)
         exam[E_CREATE_USER_RESP] = check_user_resp
-        //TODO: check that doc exists
 
         //if these checks are sucessfull move the status to RUNNING
         console.log(`rg_exist ${rg_exists}`)
@@ -61,8 +60,6 @@ const MainPage = ({ notifications }) => {
     setExams(await db_list_exams())
     setRefreshing(false)
   }
-
-  console.log(exams)
 
   const [sendingloginemail, setSendingloginemail] = useState(false)
   const sendEmail = async () => {

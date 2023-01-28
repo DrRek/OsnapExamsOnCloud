@@ -31,13 +31,13 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
     header: 'Status',
     cell: item => {
       const st = item[E_STATUS]
-      if(st == E_STATUS_VALUES.CREATING)
+      if(st === E_STATUS_VALUES.CREATING)
         return <StatusIndicator type="in-progress">Creating</StatusIndicator>
-      if(st == E_STATUS_VALUES.RUNNING)
+      if(st === E_STATUS_VALUES.RUNNING)
         return <StatusIndicator>Running</StatusIndicator>
-      if(st == E_STATUS_VALUES.STOPPING)
+      if(st === E_STATUS_VALUES.STOPPING)
         return <StatusIndicator type="pending">Stopping</StatusIndicator>
-      if(st == E_STATUS_VALUES.STOPPED)
+      if(st === E_STATUS_VALUES.STOPPED)
         return <StatusIndicator type="stopped">Stopped</StatusIndicator>
       return <StatusIndicator type="error">Invalid</StatusIndicator>
     },
@@ -67,7 +67,7 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
 ]);
 
 export default function ExamsTable({ exams, selectedExams, onSelectionChange, refreshing, onRefresh, onStopExams, onSendEmail, stoppingexams, sendingloginemail }) {
-  const { items, actions, filteredItemsCount, collectionProps, filterProps, paginationProps } = useCollection(
+  const { items, filteredItemsCount, collectionProps, filterProps, paginationProps } = useCollection(
     exams,
     {
       filtering: {

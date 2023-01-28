@@ -37,7 +37,7 @@ export const make_api_call = async (api, version, method = "GET", data = null, o
   */
   return return_all_response ?
     await get_jsonable_response(response) :
-    (response.headers.get("content-length") != 0 ? response.json() : null)
+    (response.headers.get("content-length") !== 0 ? response.json() : null)
 } 
 
 export const check_resource_group_existance = async name => {
@@ -239,7 +239,7 @@ export const create_user_in_vm = async (resourceGroupName, username, password) =
 
 export const check_create_user_in_vm = async (exam) => {
   const headers = exam[E_CREATE_USER_REQ].headers
-  const check_url = headers.find(i => i[0] == "location")[1]
+  const check_url = headers.find(i => i[0] === "location")[1]
 
   const tokens = await get_token(tokenRequest)
   var options = {
@@ -384,7 +384,7 @@ const replicated_workflow = async () => {
   )
 
   console.log("create user/password")
-  const commandRes = await create_user_in_vm(new_name, "luca", "th1sIsA32sda")
+  await create_user_in_vm(new_name, "luca", "th1sIsA32sda")
   console.log("Command result")
 
   console.log("end")

@@ -20,9 +20,11 @@ const generate_user_username = (name) =>
 const generate_user_password = () =>
   `${getRandomString(allChars,15)}`
 
-export default {
+const to_export = {
   generate_admin_username,
   generate_admin_password,
   generate_user_username,
   generate_user_password
 }
+
+export default to_export
