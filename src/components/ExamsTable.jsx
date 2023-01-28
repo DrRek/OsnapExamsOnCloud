@@ -99,9 +99,9 @@ export default function ExamsTable({ exams, selectedExams, onSelectionChange, re
           title="Ongoing Exams"
           actionButtons={
             <SpaceBetween size="xs" direction="horizontal">
-              <Button disabled={refreshing} onClick={onRefresh}>Refresh</Button>
-              <Button disabled={selectedExams.length === 0 || stoppingexams} onClick={onStopExams}>Stop exams</Button>
-              <Button disabled={selectedExams.length === 0 || sendingloginemail} onClick={onSendEmail}>Share VM & doc</Button>
+              <Button disabled={refreshing} loading={refreshing} onClick={onRefresh}>Refresh</Button>
+              <Button disabled={selectedExams.length === 0 || stoppingexams} loading={stoppingexams} onClick={onStopExams}>Stop exams</Button>
+              <Button disabled={selectedExams.length === 0 || sendingloginemail} loading={sendingloginemail} onClick={onSendEmail}>Share VM & doc</Button>
               <Button variant="primary" onClick={() => history.push("/exams/new")}>Create exams</Button>
             </SpaceBetween>
           }

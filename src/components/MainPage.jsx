@@ -20,6 +20,7 @@ const MainPage = ({ notifications }) => {
   const refreshExams = async () => {
     setRefreshing(true)
     const temp_exams = await db_list_exams()
+    console.log("starting refresh")
 
     for(const exam of temp_exams){
       if(exam[E_STATUS] === E_STATUS_VALUES.CREATING){ // what to do if exam is being created
@@ -42,9 +43,6 @@ const MainPage = ({ notifications }) => {
       } else if (exam[E_STATUS] === E_STATUS_VALUES.STOPPING){ // what to do if exam is being stopped
         //check that RG does not exist
         const rg_exists = await check_resource_group_existance(exam[E_ID])
-
-        //check that doc sharing has been disabled
-        await remove_access_to_doc(exam[E_CREATE_DOC_RESP]["body"]["name"])
 
         //if these checks are sucessfull move the status to STOPPED
         if(!rg_exists)
@@ -112,7 +110,8 @@ Password: ${exam[E_USERPASS]}</pre><br/>
       exam[E_DELETE_RG_RESP] = await delete_resource_group(exam[E_ID])
       exam[E_STATUS] = E_STATUS_VALUES.STOPPING
 
-      //TODO disable access to doc
+      //disable access to doc
+      await remove_access_to_doc(exam[E_CREATE_DOC_RESP]["body"]["name"])
 
       db_update_exam(exam, "stopping exam")
     }
