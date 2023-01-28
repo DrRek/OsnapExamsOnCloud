@@ -11,6 +11,10 @@ export const E_STATUS_VALUES = {
   STOPPED: "stopped"
 }
 export const E_CREATE_USER_REQ = "createUser"
-export const E_CREATE_USER_RESP = "createUser"
+export const E_CREATE_USER_RESP = "createUserResp"
 export const E_EMAIL = "email"
 export const E_DELETE_RG_RESP = "deleteRGresp"
+export const E_CREATE_DOC_RESP = "createDocResp"
+export const E_SHARED_DOC_RESP = "sharedDocResp"
+export const E_USERPASS = "userPassword"
+export const E_USERUSER = "userUsername"

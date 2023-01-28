@@ -22,10 +22,11 @@ import {
   create_virtual_machine,
   create_user_in_vm,
   create_subnet,
-  wait_for_ip_address
+  wait_for_ip_address,
+  create_docx_document
 } from '../utils/api';
 import pwlib from '../utils/pwlib'
-import { APP_PREFIX, E_EMAIL, E_LOGS, E_STATUS, E_STATUS_VALUES } from '../utils/constants'
+import { APP_PREFIX, E_CREATE_DOC_RESP, E_EMAIL, E_LOGS, E_STATUS, E_STATUS_VALUES } from '../utils/constants'
 
 export default function ExamsPanel({ exam, onChange }) {
   return (
@@ -209,6 +210,10 @@ export function NewExamsForm({ loadHelpPanelContent }) {
         await db_update_exam(exam, "choosen username/password combination for low-priv user")
         exam["createUser"] = await create_user_in_vm(exam["id"], exam["userUsername"], exam["userPassword"])
         await db_update_exam(exam, "sent command to create low-priv user")
+
+        com(`creating exam report document for ${exam["name"]}`)
+        exam[E_CREATE_DOC_RESP] = await create_docx_document(exam["name"])
+        await db_update_exam(exam, "created document that will store the exam report")
 
         com(`done creating resources for ${exam["name"]}`)
         setLoadingText(false)

@@ -6,15 +6,16 @@ import { Button, Pagination, Table, TextFilter, SpaceBetween, Link, StatusIndica
 import { paginationLabels, examsSelectionLabels, addColumnSortLabels, getFilterCounterText } from '../tables/labels';
 import { TableHeader } from './TableHeader';
 import { useHistory } from 'react-router-dom';
-import { E_EMAIL, E_ID, E_LOGS, E_STATUS, E_STATUS_VALUES } from '../utils/constants';
+import { E_CREATE_DOC_RESP, E_EMAIL, E_ID, E_LOGS, E_STATUS, E_STATUS_VALUES } from '../utils/constants';
 import Moment from 'react-moment';
+import { get_resource_group_link } from '../utils/api';
 
 const COLUMN_DEFINITIONS = addColumnSortLabels([
   {
     id: E_ID,
     sortingField: E_ID,
     header: 'Exam ID',
-    cell: item => item[E_ID],
+    cell: item => <Link external href={get_resource_group_link(item[E_ID])}>{item[E_ID]}</Link>,
     minWidth: 180,
   },
   {
@@ -54,7 +55,7 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
   {
     id: 'docLink',
     header: 'Exam report',
-    cell: item => "not yet implemented",
+    cell: item => <Link external href={item[E_CREATE_DOC_RESP]["body"]["webUrl"]}>{item[E_CREATE_DOC_RESP]["body"]["name"]}</Link>,
     minWidth: 100,
   },
   {
@@ -100,7 +101,7 @@ export default function ExamsTable({ exams, selectedExams, onSelectionChange, re
             <SpaceBetween size="xs" direction="horizontal">
               <Button disabled={refreshing} onClick={onRefresh}>Refresh</Button>
               <Button disabled={selectedExams.length === 0 || stoppingexams} onClick={onStopExams}>Stop exams</Button>
-              <Button disabled={selectedExams.length === 0 || sendingloginemail} onClick={onSendEmail}>Send login email</Button>
+              <Button disabled={selectedExams.length === 0 || sendingloginemail} onClick={onSendEmail}>Share VM & doc</Button>
               <Button variant="primary" onClick={() => history.push("/exams/new")}>Create exams</Button>
             </SpaceBetween>
           }

@@ -12,6 +12,12 @@ const get_token = async (tokenType) => {
   return tokens
 }
 
+const get_jsonable_response = async (response, expect_json=false) => ({
+  headers: [...response.headers.entries()],
+  body: expect_json ? await response.json() : await response.text(),
+  status: response.status
+})
+
 export const make_api_call = async (api, version, method = "GET", data = null, other_params = "", tokenType = tokenRequest, return_all_response = false) => {
   const tokens = await get_token(tokenType)
 
@@ -30,11 +36,7 @@ export const make_api_call = async (api, version, method = "GET", data = null, o
    * TODO: I could return the header if the response is 202
   */
   return return_all_response ?
-    {
-      headers: [...response.headers.entries()],
-      body: await response.text(),
-      status: response.status
-    } :
+    await get_jsonable_response(response) :
     (response.headers.get("content-length") != 0 ? response.json() : null)
 } 
 
@@ -52,6 +54,9 @@ export const check_resource_group_existance = async name => {
     return true
   }
 }
+
+export const get_resource_group_link = name =>
+  `https://portal.azure.com/#@osnap.it/resource/subscriptions/${SUB_ID}/resourceGroups/${name}`
 
 export const list_resource_groups = async () =>
   (await make_api_call("resourcegroups", "2021-04-01")).value
@@ -247,11 +252,7 @@ export const check_create_user_in_vm = async (exam) => {
   const response = await fetch(check_url, options)
   return response.status === 202 ? 
     false :
-    ({
-      headers: [...response.headers.entries()],
-      body: await response.text(),
-      status: response.status
-    })
+    await get_jsonable_response(response)
 }
 
 export const send_email = async (to, subject, body) => {
@@ -273,7 +274,7 @@ export const send_email = async (to, subject, body) => {
       message: {
         subject: subject,
         body: {
-          contentType: 'Text',
+          contentType: 'html',
           content: body
         },
         toRecipients: [
@@ -301,16 +302,10 @@ export const send_email = async (to, subject, body) => {
 }
 
 export const create_docx_document = async (name) => {
-  name += Math.floor(Math.random() * 1000)
-  console.log(name)
+  name += `-${Math.floor(Math.random() * 1000)}`
+  console.log(`create_docx_document with name: ${name}`)
 
-  const tokens = await getTokenPopup(loginRequest);
-
-  if (tokens === undefined) {
-    console.error("User needs to login before creating docx")
-    signIn()
-    return false
-  }
+  const tokens = await get_token(loginRequest)
 
   var options = {
     method: 'PUT',
@@ -322,24 +317,11 @@ export const create_docx_document = async (name) => {
   var graphEndpoint = `https://graph.microsoft.com/v1.0/me/drive/root:/ExamsOnTheCloud/${name}.docx:/content`
 
   const response = await fetch(graphEndpoint, options)
-  if (response.status !== 201) {
-    console.error("there was some error creating the docx")
-    console.log(response)
-    return false
-  } else {
-    console.log("correctly created docx")
-  }
-  return true
+  return await get_jsonable_response(response, true)
 }
 
 export const grant_access_to_doc = async (name, email) => {
-  const tokens = await getTokenPopup(loginRequest);
-
-  if (tokens === undefined) {
-    console.error("User needs to login before creating docx")
-    signIn()
-    return false
-  }
+  const tokens = await get_token(loginRequest);
 
   var options = {
     method: 'POST',
@@ -349,7 +331,7 @@ export const grant_access_to_doc = async (name, email) => {
     },
     body: JSON.stringify({
       "requireSignIn": true,
-      "sendInvitation": true,
+      "sendInvitation": false,
       "roles": ["write"],
       "recipients": [
         {
@@ -358,17 +340,10 @@ export const grant_access_to_doc = async (name, email) => {
       ]
     })
   };
-  var graphEndpoint = `https://graph.microsoft.com/v1.0/me/drive/root:/ExamsOnTheCloud/LucaTest.docx:/invite`
+  var graphEndpoint = `https://graph.microsoft.com/v1.0/me/drive/root:/ExamsOnTheCloud/${name}:/invite`
 
   const response = await fetch(graphEndpoint, options)
-  if (response.status !== 202) {
-    console.error("there was some error creating the docx")
-    console.log(response)
-    return false
-  } else {
-    console.log("correctly created docx")
-  }
-  return true
+  return await get_jsonable_response(response, true)
 } 
 
 const replicated_workflow = async () => {
@@ -420,6 +395,8 @@ export const testFunction = async () => {
 }
 
 
+
+
 const DB_NAME = "exams"
 
 export const db_list_exams = async () => {
@@ -432,7 +409,7 @@ export const db_is_prefix_unique = async (newID) => {
   return !exams.some(({id}) => id.startsWith(newID))
 }
 
-export const db_update_exam = async (exam, reason) => {
+export const db_update_exam = (exam, reason) => {
   console.log("db_update_exam for reason: "+reason)
   console.log(exam)
   exam[E_LOGS].push({

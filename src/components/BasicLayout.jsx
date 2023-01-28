@@ -39,7 +39,7 @@ const Content = () => <div>
   <Button onClick={testFunction}>Test</Button>
   <Button onClick={() => delete_all_resource_groups(APP_PREFIX)}>Delete all resources</Button>
   <Button onClick={() => send_email("lucareccia@hotmail.it", "test sub", "questa\nè\nuna\nprova")}>Send test email to lucareccia@hotmail.it</Button>
-  <Button onClick={() => create_docx_document("test")}>Test create file</Button>
+  <Button onClick={async () => {const asd = await create_docx_document("test"); console.log(asd)}}>Test create file</Button>
   <Button onClick={() => grant_access_to_doc("test", "lucareccia@hotmail.it")}>To grant access to file</Button>
   <Button onClick={() => check_resource_group_existance("Managment-ExamsOnTheCloud2")}>Check rg existance</Button>
   <Button onClick={() => check_create_user_in_vm(JSON.parse(localStorage.getItem("exams"))["ExamsOnTheCloud-prova2-lucareccia-320"])}>Check create user status</Button>
