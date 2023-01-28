@@ -86,7 +86,17 @@ Password: ${exam[E_USERPASS]}</pre><br/>
       Buona fortuna,<br/>
       Osnap Team`
 
-      await send_email(email, email_subject, email_body)
+      const file = `full address:s:${exam["ipaddr"].properties.ipAddress}:3389\nusername:s:${exam[E_USERUSER]}\npassword:s:${exam[E_USERPASS]}`
+
+      const attachments = [{
+        "@odata.type": "#microsoft.graph.fileAttachment",
+        "name": `${exam["name"]}-vm-access.rdp`,
+        "contentBytes": btoa(file),
+        "contentType": "text/plain"
+      }]
+
+      await send_email(email, email_subject, email_body, attachments)
+      db_update_exam(exam, "start exam email sent")
     })    
 
     setSendingloginemail(false)

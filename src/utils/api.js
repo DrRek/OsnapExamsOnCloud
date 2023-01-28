@@ -255,7 +255,7 @@ export const check_create_user_in_vm = async (exam) => {
     await get_jsonable_response(response)
 }
 
-export const send_email = async (to, subject, body) => {
+export const send_email = async (to, subject, body, attachments = []) => {
   const tokens = await getTokenPopup(loginRequest);
 
   if (tokens === undefined) {
@@ -283,7 +283,8 @@ export const send_email = async (to, subject, body) => {
               address: to
             }
           }
-        ]
+        ],
+        attachments: attachments
       },
       sveToSentItems: false
     })

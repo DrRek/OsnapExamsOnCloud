@@ -1,5 +1,5 @@
 const alfaNumChars = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890".split("")
-const allChars = [...alfaNumChars, ...",.;:!£$%&/()=?".split("")]
+const allChars = [...alfaNumChars, ...",.;!£$%&/()=?".split("")]
 const numChars = "12345678990".split("")
 
 const getSingleRandomChar = (charset) =>
