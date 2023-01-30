@@ -69,7 +69,7 @@ const MainPage = ({ notifications }) => {
       const doc = exam[E_CREATE_DOC_RESP]["body"]["name"]
 
       exam[E_SHARED_DOC_RESP] = await grant_access_to_doc(doc, email)
-      db_update_exam_v2(exam, "allowed student to access the doc")
+      await db_update_exam_v2(exam, "allowed student to access the doc")
 
       const email_subject = "[OSNAP] Il tuo esame è iniziato"
       const email_body = `
@@ -95,7 +95,7 @@ Password: ${exam[E_USERPASS]}</pre><br/>
       }]
 
       await send_email(email, email_subject, email_body, attachments)
-      db_update_exam_v2(exam, "start exam email sent")
+      await db_update_exam_v2(exam, "start exam email sent")
     }
 
     setSendingloginemail(false)
@@ -111,9 +111,12 @@ Password: ${exam[E_USERPASS]}</pre><br/>
       exam[E_STATUS] = E_STATUS_VALUES.STOPPING
 
       //disable access to doc
-      await remove_access_to_doc(exam[E_CREATE_DOC_RESP]["body"]["name"])
+      if(exam[E_CREATE_DOC_RESP]["body"]["name"]){
+        console.log(exam[E_CREATE_DOC_RESP]["body"]["name"])
+        await remove_access_to_doc(exam[E_CREATE_DOC_RESP]["body"]["name"])
+      }
 
-      db_update_exam_v2(exam, "stopping exam")
+      await db_update_exam_v2(exam, "stopping exam")
     }
     setStoppingexams(false)
     setSelectedExams([])
