@@ -46,7 +46,7 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
   {
     id: 'timestamp',
     cell: item => 
-      <Moment date={new Date(item[E_LOGS][0]["timestamp"]*1000)} format="hh:mm DD/MM/YY"></Moment>,
+      <Moment date={new Date(item[E_LOGS][0]["timestamp"]*1000)} format="HH:mm DD/MM/YY"></Moment>,
     sortingComparator: (a,b) => 
       a[E_LOGS][0]["timestamp"] < b[E_LOGS][0]["timestamp"],
     header: 'Start time',
@@ -75,7 +75,7 @@ export default function ExamsTable({ exams, selectedExams, onSelectionChange, re
         noMatch: <div></div>,
       },
       pagination: { pageSize: 50 },
-      sorting: { defaultState: { sortingColumn: COLUMN_DEFINITIONS[0] } },
+      sorting: { defaultState: { sortingColumn: COLUMN_DEFINITIONS[3] } },
       selection: {},
     }
   );

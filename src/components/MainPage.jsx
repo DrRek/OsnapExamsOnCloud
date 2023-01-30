@@ -111,8 +111,8 @@ Password: ${exam[E_USERPASS]}</pre><br/>
       exam[E_STATUS] = E_STATUS_VALUES.STOPPING
 
       //disable access to doc
+      console.log(exam[E_CREATE_DOC_RESP]["body"]["name"])
       if(exam[E_CREATE_DOC_RESP]["body"]["name"]){
-        console.log(exam[E_CREATE_DOC_RESP]["body"]["name"])
         await remove_access_to_doc(exam[E_CREATE_DOC_RESP]["body"]["name"])
       }
 

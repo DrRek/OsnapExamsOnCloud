@@ -70,7 +70,7 @@ export const create_resource_groups = async (name, location = "westeurope") =>
   })
 
 export const delete_resource_group = async (name) =>
-  make_api_call(`resourcegroups/${name}`, "2021-04-01", "DELETE", null, "&forceDeletionTypes=Microsoft.Compute/virtualMachines,Microsoft.Compute/virtualMachineScaleSets")
+  make_api_call(`resourcegroups/${name}`, "2021-04-01", "DELETE", null, "&forceDeletionTypes=Microsoft.Compute/virtualMachines,Microsoft.Compute/virtualMachineScaleSets", tokenRequest, true)
 
 export const delete_all_resource_groups = async (prefix) => {
   if (!prefix)
