@@ -1,5 +1,5 @@
 import { signIn, getTokenPopup } from './authPopup'
-import { loginRequest, tokenRequest } from './authConfig';
+import { dbTokenRequest, loginRequest, tokenRequest } from './authConfig';
 import { APP_PREFIX, E_CREATE_USER_REQ, E_LOGS, SUB_ID } from './constants';
 
 const get_token = async (tokenType) => {
@@ -449,4 +449,112 @@ export const db_update_exam = (exam, reason) => {
     ...raw_exams,
     [exam.id]: exam
   }))
+}
+
+const db_util_obj_to_json = obj => {
+  let newObj = {};
+
+  for (const key in obj) {
+    if (Array.isArray(obj[key]) || typeof obj[key] === 'object') {
+      newObj[key] = JSON.stringify(obj[key]);
+    } else {
+      newObj[key] = obj[key];
+    }
+  }
+
+  return newObj;
+}
+
+const db_util_json_to_obj = obj => {
+  let newObj = {};
+
+  for (const key in obj) {
+    try {
+      newObj[key] = JSON.parse(obj[key]);
+    } catch (e) {
+      newObj[key] = obj[key];
+    }
+  }
+
+  return newObj;
+}
+
+const DB_URL = "https://osnapdbexamsonthecloud.table.core.windows.net/exams"
+
+export const db_list_exams_v2 = async () => {
+  const tokens = await get_token(dbTokenRequest)
+
+  const headers = new Headers({
+    'Authorization': `Bearer ${tokens.accessToken}`,
+    'Accept': 'application/json',
+    'x-ms-version': '2019-02-02'
+  });
+
+  const options = {
+    method: 'GET',
+    headers: headers
+  }
+
+  const resp = await fetch(DB_URL, options)
+  return (await resp.json()).value.map(i => db_util_json_to_obj(i))
+}
+
+export const db_is_prefix_unique_v2 = async (newID) => {
+  const tokens = await get_token(dbTokenRequest)
+
+  const headers = new Headers({
+    'Authorization': `Bearer ${tokens.accessToken}`,
+    'Accept': 'application/json',
+    'x-ms-version': '2019-02-02'
+  });
+
+  const options = {
+    method: 'GET',
+    headers: headers
+  }
+
+  const resp = await fetch(`${DB_URL}()?$filter=RowKey ge '${newID}' and RowKey lt '${newID}z'`, options)
+  const objects = (await resp.json()).value
+  return objects.length === 0 ? true : false
+}
+
+export const db_update_exam_v2 = async (exam, reason) => {
+  console.log("db_update_exam_v2 for reason: "+reason)
+  const tokens = await get_token(dbTokenRequest)
+
+  exam[E_LOGS].push({
+    "timestamp": Date.now()/1000,
+    "reason": reason
+  })
+
+  const options = {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${tokens.accessToken}`,
+      'Accept': 'application/json',
+      'x-ms-version': '2019-02-02',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(db_util_obj_to_json(exam))
+  }
+
+  const resp = await fetch(`${DB_URL}(PartitionKey='Osnap',RowKey='${exam.id}')`, options)
+}
+
+export const db_delete_exam_v2 = async (exam) => {
+  console.log("db_delete_exam_v2")
+  const tokens = await get_token(dbTokenRequest)
+
+  const options = {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${tokens.accessToken}`,
+      'Accept': 'application/json',
+      'x-ms-version': '2019-02-02',
+      'x-ms-date': new Date().toUTCString(),
+      'If-Match': '*'
+    }
+  }
+
+  const resp = await fetch(`${DB_URL}(PartitionKey='Osnap',RowKey='${exam.id}')`, options)
 }

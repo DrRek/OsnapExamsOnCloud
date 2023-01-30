@@ -8,7 +8,7 @@ import {
 import ServiceNavigation from './ServiceNavigation.jsx';
 import { appLayoutLabels } from '../tables/labels';
 import ExamsTable from './ExamsTable.jsx';
-import { check_create_user_in_vm, check_resource_group_existance, db_list_exams, db_update_exam, delete_resource_group, grant_access_to_doc, remove_access_to_doc, send_email } from '../utils/api.js';
+import { check_create_user_in_vm, check_resource_group_existance, db_list_exams_v2, db_update_exam_v2, delete_resource_group, grant_access_to_doc, remove_access_to_doc, send_email } from '../utils/api.js';
 import { E_CREATE_DOC_RESP, E_CREATE_USER_RESP, E_DELETE_RG_RESP, E_EMAIL, E_ID, E_SHARED_DOC_RESP, E_STATUS, E_STATUS_VALUES, E_USERPASS, E_USERUSER } from '../utils/constants.js';
 
 const MainPage = ({ notifications }) => {
@@ -19,7 +19,7 @@ const MainPage = ({ notifications }) => {
 
   const refreshExams = async () => {
     setRefreshing(true)
-    const temp_exams = await db_list_exams()
+    const temp_exams = await db_list_exams_v2()
     console.log("starting refresh")
 
     for(const exam of temp_exams){
@@ -36,7 +36,7 @@ const MainPage = ({ notifications }) => {
         console.log(`check_user_resp ${check_user_resp}`)
         if(rg_exists && check_user_resp) {
           exam[E_STATUS] = E_STATUS_VALUES.RUNNING
-          await db_update_exam(exam, "from creating to running")
+          await db_update_exam_v2(exam, "from creating to running")
         }
       } else if (exam[E_STATUS] === E_STATUS_VALUES.RUNNING){ // what to do if exam is running
 
@@ -47,7 +47,7 @@ const MainPage = ({ notifications }) => {
         //if these checks are sucessfull move the status to STOPPED
         if(!rg_exists)
           exam[E_STATUS] = E_STATUS_VALUES.STOPPED
-          await db_update_exam(exam, "from stopping to stopped")
+          await db_update_exam_v2(exam, "from stopping to stopped")
       } else if (exam[E_STATUS] === E_STATUS_VALUES.STOPPED){ // what to do if exam is already stopped
 
       } else {
@@ -56,7 +56,7 @@ const MainPage = ({ notifications }) => {
       }
     }
 
-    setExams(await db_list_exams())
+    setExams(await db_list_exams_v2())
     setRefreshing(false)
   }
 
@@ -69,7 +69,7 @@ const MainPage = ({ notifications }) => {
       const doc = exam[E_CREATE_DOC_RESP]["body"]["name"]
 
       exam[E_SHARED_DOC_RESP] = await grant_access_to_doc(doc, email)
-      db_update_exam(exam, "allowed student to access the doc")
+      db_update_exam_v2(exam, "allowed student to access the doc")
 
       const email_subject = "[OSNAP] Il tuo esame è iniziato"
       const email_body = `
@@ -95,7 +95,7 @@ Password: ${exam[E_USERPASS]}</pre><br/>
       }]
 
       await send_email(email, email_subject, email_body, attachments)
-      db_update_exam(exam, "start exam email sent")
+      db_update_exam_v2(exam, "start exam email sent")
     }
 
     setSendingloginemail(false)
@@ -113,7 +113,7 @@ Password: ${exam[E_USERPASS]}</pre><br/>
       //disable access to doc
       await remove_access_to_doc(exam[E_CREATE_DOC_RESP]["body"]["name"])
 
-      db_update_exam(exam, "stopping exam")
+      db_update_exam_v2(exam, "stopping exam")
     }
     setStoppingexams(false)
     setSelectedExams([])

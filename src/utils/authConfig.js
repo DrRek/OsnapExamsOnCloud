@@ -63,3 +63,8 @@ export const tokenRequest = {
     scopes: ["https://management.azure.com/.default"],
     forceRefresh: false // Set this to "true" to skip a cached token and go to the server to get a new token
 };
+
+export const dbTokenRequest = {
+    scopes: ["https://storage.azure.com/.default"],
+    forceRefresh: false // Set this to "true" to skip a cached token and go to the server to get a new token
+};

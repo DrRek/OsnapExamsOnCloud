@@ -12,8 +12,8 @@ import {
   Spinner
 } from '@cloudscape-design/components';
 import { 
-  db_is_prefix_unique,
-  db_update_exam,
+  db_is_prefix_unique_v2,
+  db_update_exam_v2,
   create_resource_groups,
   create_virtual_network,
   create_public_ip_address,
@@ -135,7 +135,7 @@ export function NewExamsForm({ loadHelpPanelContent }) {
       ...raw_exam,
       [key]: {
         error: "",
-        value
+        value: value.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       }
     })
   }
@@ -171,53 +171,53 @@ export function NewExamsForm({ loadHelpPanelContent }) {
         exam["id"] = `${APP_PREFIX}${raw_exam.prefix.value}-${exam["name"]}-${Math.floor(Math.random() * 1000)}`
         com(`using id name: ${exam["id"]}`)
 
-        await db_update_exam(exam, "started exam creation")
+        await db_update_exam_v2(exam, "started exam creation")
 
         com(`creating resource group for ${exam["name"]}`)
         await create_resource_groups(exam["id"])
-        await db_update_exam(exam, "created resource group")
+        await db_update_exam_v2(exam, "created resource group")
 
         com(`creating virtual network for ${exam["name"]}`)
         await create_virtual_network(exam["id"])
-        await db_update_exam(exam, "created virtual network")
+        await db_update_exam_v2(exam, "created virtual network")
 
         com(`creating subnet for ${exam["name"]}`)
         exam["subnet"] = await create_subnet(exam["id"])
-        await db_update_exam(exam, "created subnet")
+        await db_update_exam_v2(exam, "created subnet")
 
         com(`creating public IP for ${exam["name"]}`)
         await create_public_ip_address(exam["id"])
-        await db_update_exam(exam, "created public ip address")
+        await db_update_exam_v2(exam, "created public ip address")
 
         com(`waiting for public IP for ${exam["name"]}`)
         exam["ipaddr"] = await wait_for_ip_address(exam["id"])
-        await db_update_exam(exam, `obtained public ip address ${exam["ipaddr"].properties.ipAddress}`)
+        await db_update_exam_v2(exam, `obtained public ip address ${exam["ipaddr"].properties.ipAddress}`)
         
         com(`creating security group for ${exam["name"]}`)
         exam["netsecgrp"] = await create_network_security_group(exam["id"])
-        await db_update_exam(exam, "created security group")
+        await db_update_exam_v2(exam, "created security group")
         
         com(`creating network interface for ${exam["name"]}`)
         exam["netint"] = await create_network_interface(exam["id"], exam["netsecgrp"].id, exam["subnet"].id, exam["ipaddr"].id)
-        await db_update_exam(exam, "created network interface")
+        await db_update_exam_v2(exam, "created network interface")
         
         com(`creating virtual machine for ${exam["name"]}`)
         exam["adminUsername"] = pwlib.generate_admin_username()
         exam["adminPassword"] = pwlib.generate_admin_password()
-        await db_update_exam(exam, "choosen username/password combination for admin")
+        await db_update_exam_v2(exam, "choosen username/password combination for admin")
         await create_virtual_machine(exam["id"], exam["adminUsername"], exam["adminPassword"], exam["netint"].id)
-        await db_update_exam(exam, "created virtual machine")
+        await db_update_exam_v2(exam, "created virtual machine")
 
         com(`creating low-privilege user for ${exam["name"]}`)
         exam["userUsername"] = pwlib.generate_user_username(exam["name"])
         exam["userPassword"] = pwlib.generate_user_password()
-        await db_update_exam(exam, "choosen username/password combination for low-priv user")
+        await db_update_exam_v2(exam, "choosen username/password combination for low-priv user")
         exam["createUser"] = await create_user_in_vm(exam["id"], exam["userUsername"], exam["userPassword"])
-        await db_update_exam(exam, "sent command to create low-priv user")
+        await db_update_exam_v2(exam, "sent command to create low-priv user")
 
         com(`creating exam report document for ${exam["name"]}`)
         exam[E_CREATE_DOC_RESP] = await create_docx_document(exam["name"])
-        await db_update_exam(exam, "created document that will store the exam report")
+        await db_update_exam_v2(exam, "created document that will store the exam report")
 
         com(`done creating resources for ${exam["name"]}`)
       
@@ -231,7 +231,7 @@ export function NewExamsForm({ loadHelpPanelContent }) {
     const prefixError = 
       !/[a-zA-Z0-9-]+/.test(raw_exam.prefix.value) ?
         "You must specify a string to use as prefix, only use - as special character." :
-        !(await db_is_prefix_unique(raw_exam.prefix.value)) && 
+        !(await db_is_prefix_unique_v2(raw_exam.prefix.value)) && 
           "Prefixes should be unique, another exam with this prefix already exists"
     const emailError = raw_exam.raw_students.value.split("\n").map(i => i.trim()).some(i => !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(i)) && "You must specify one valid email for each line."
 
