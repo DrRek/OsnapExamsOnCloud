@@ -37,7 +37,7 @@ export const make_api_call = async (api, version, method = "GET", data = null, o
   */
   return return_all_response ?
     await get_jsonable_response(response) :
-    (response.headers.get("content-length") !== 0 ? response.json() : null)
+    (response.headers.get("content-length") !== 0 && [200, 201].includes(response.status) ? response.json() : null)
 } 
 
 export const check_resource_group_existance = async name => {

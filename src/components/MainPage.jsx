@@ -21,6 +21,7 @@ const MainPage = ({ notifications }) => {
 
   const refreshExams = async () => {
     setRefreshing(true)
+    setSelectedExams([])
     const temp_exams = await db_list_exams_v2()
     console.log("starting refresh")
     console.log(temp_exams[0])
@@ -170,6 +171,7 @@ Password: ${exam[E_USERPASS]}</pre><br/><br/>
     } finally {
       setTurningOn(false)
     }
+    refreshExams()
   }
 
   const turnOffVMs = async () => {
@@ -177,11 +179,11 @@ Password: ${exam[E_USERPASS]}</pre><br/><br/>
       setTurningOff(true)
       for (const exam of selectedExams) {
         await turn_off_virtual_machine(exam[E_ID])
-        //exam[E_STATUS] = E_STATUS_VALUES.DESTROYING
       }
     } finally {
       setTurningOff(false)
     }
+    refreshExams()
   }
 
   useEffect(() => {
