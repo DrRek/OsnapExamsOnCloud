@@ -6,9 +6,10 @@ import { Button, Pagination, Table, TextFilter, SpaceBetween, Link, StatusIndica
 import { paginationLabels, examsSelectionLabels, addColumnSortLabels, getFilterCounterText } from '../tables/labels';
 import { TableHeader } from './TableHeader';
 import { useHistory } from 'react-router-dom';
-import { E_CREATE_DOC_RESP, E_EMAIL, E_ID, E_LOGS, E_STATUS, E_STATUS_VALUES } from '../utils/constants';
+import { E_ADMINPASS, E_ADMINUSER, E_CREATE_DOC_RESP, E_EMAIL, E_ID, E_LOGS, E_STATUS, E_STATUS_VALUES, E_USERPASS, E_USERUSER } from '../utils/constants';
 import Moment from 'react-moment';
 import { get_resource_group_link } from '../utils/api';
+import { saveAs } from 'file-saver';
 
 const COLUMN_DEFINITIONS = addColumnSortLabels([
   {
@@ -53,9 +54,35 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
     minWidth: 160,
   },
   {
-    id: 'docLink',
-    header: 'Exam report',
-    cell: item => item[E_CREATE_DOC_RESP] ? <Link external href={item[E_CREATE_DOC_RESP]["body"]["webUrl"]}>{item[E_CREATE_DOC_RESP]["body"]["name"]}</Link> : "invalid link",
+    id: 'adminrdp',
+    cell: item => 
+      <Button iconName="file" variant="inline-icon" onClick={() => {
+        const file = new Blob([`full address:s:${item["ipaddr"].properties.ipAddress}:3389\nusername:s:${item[E_ADMINUSER]}\npassword:s:${item[E_ADMINPASS]}`], {type: "text/plain;charset=utf-8"});
+        saveAs(
+          file,
+          'admin.rdp'
+        )
+      }} />,
+    header: 'Admin RDP',
+    minWidth: 50,
+  },
+  {
+    id: 'studentrdp',
+    cell: item => 
+      <Button iconName="file" variant="inline-icon" onClick={() => {
+        const file = new Blob([`full address:s:${item["ipaddr"].properties.ipAddress}:3389\nusername:s:${item[E_USERUSER]}\npassword:s:${item[E_USERPASS]}`], {type: "text/plain;charset=utf-8"});
+        saveAs(
+          file,
+          'student.rdp'
+        )
+      }} />,
+    header: 'Student RDP',
+    minWidth: 50,
+  },
+  {
+    id: 'ip',
+    header: 'IP',
+    cell: item => item["ipaddr"]["properties"]["ipAddress"],
     minWidth: 100,
   },
   {
@@ -66,7 +93,7 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
   }
 ]);
 
-export default function ExamsTable({ exams, selectedExams, onSelectionChange, refreshing, onRefresh, onStopExams, onSendEmail, stoppingexams, sendingloginemail }) {
+export default function ExamsTable({ exams, selectedExams, onSelectionChange, refreshing, onRefresh, onDestroyExams, onSendEmail, stoppingexams, sendingloginemail, onTurnOn, turningOn, onTurnOff, turningOff }) {
   const { items, filteredItemsCount, collectionProps, filterProps, paginationProps } = useCollection(
     exams,
     {
@@ -100,9 +127,11 @@ export default function ExamsTable({ exams, selectedExams, onSelectionChange, re
           actionButtons={
             <SpaceBetween size="xs" direction="horizontal">
               <Button disabled={refreshing} loading={refreshing} onClick={onRefresh}>Refresh</Button>
-              <Button disabled={selectedExams.length === 0 || stoppingexams} loading={stoppingexams} onClick={onStopExams}>Stop exams</Button>
-              <Button disabled={selectedExams.length === 0 || sendingloginemail} loading={sendingloginemail} onClick={onSendEmail}>Share VM & doc</Button>
+              <Button disabled={selectedExams.length === 0 || stoppingexams} loading={turningOn} onClick={onTurnOn}>Turn on VM</Button>
+              <Button disabled={selectedExams.length === 0 || stoppingexams} loading={turningOff} onClick={onTurnOff}>Turn off VM</Button>
               <Button variant="primary" onClick={() => history.push("/exams/new")}>Create exams</Button>
+              <Button disabled={selectedExams.length === 0 || sendingloginemail} loading={sendingloginemail} onClick={onSendEmail}>Send Email</Button>
+              <Button disabled={selectedExams.length === 0 || stoppingexams} loading={stoppingexams} onClick={onDestroyExams}>Destroy VM</Button>
             </SpaceBetween>
           }
           totalItems={exams}

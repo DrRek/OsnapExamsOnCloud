@@ -19,11 +19,13 @@ import {
   create_public_ip_address,
   create_network_security_group,
   create_network_interface,
+  create_network_interface_2,
   create_virtual_machine,
   create_user_in_vm,
   create_subnet,
   wait_for_ip_address,
-  create_docx_document
+  create_docx_document,
+  change_studente_password
 } from '../utils/api';
 import pwlib from '../utils/pwlib'
 import { APP_PREFIX, E_CREATE_DOC_RESP, E_EMAIL, E_LOGS, E_STATUS, E_STATUS_VALUES } from '../utils/constants'
@@ -200,24 +202,29 @@ export function NewExamsForm({ loadHelpPanelContent }) {
         com(`creating network interface for ${exam["name"]}`)
         exam["netint"] = await create_network_interface(exam["id"], exam["netsecgrp"].id, exam["subnet"].id, exam["ipaddr"].id)
         await db_update_exam_v2(exam, "created network interface")
+
+        //com(`creating #2 network interface for ${exam["name"]}`)
+        //exam["netint2"] = await create_network_interface_2(exam["id"]+"2", exam["subnet"].id, exam["id"])
+        //await db_update_exam_v2(exam, "created #2 network interface")
         
         com(`creating virtual machine for ${exam["name"]}`)
-        exam["adminUsername"] = pwlib.generate_admin_username()
-        exam["adminPassword"] = pwlib.generate_admin_password()
+        exam["adminUsername"] = "osnap"
+        exam["adminPassword"] = "7QRGeViKKCxWq5g"
         await db_update_exam_v2(exam, "choosen username/password combination for admin")
-        await create_virtual_machine(exam["id"], exam["adminUsername"], exam["adminPassword"], exam["netint"].id)
+        await create_virtual_machine(exam["id"], exam["netint"].id)
         await db_update_exam_v2(exam, "created virtual machine")
 
-        com(`creating low-privilege user for ${exam["name"]}`)
-        exam["userUsername"] = pwlib.generate_user_username(exam["name"])
+        com(`changing password of low-privilege user for ${exam["name"]}`)
+        exam["userUsername"] = "studente"
         exam["userPassword"] = pwlib.generate_user_password()
-        await db_update_exam_v2(exam, "choosen username/password combination for low-priv user")
-        exam["createUser"] = await create_user_in_vm(exam["id"], exam["userUsername"], exam["userPassword"])
+        await db_update_exam_v2(exam, "choosen password combination for low-priv user")
+        exam["createUser"] = await change_studente_password(exam["id"], exam["userPassword"])
         await db_update_exam_v2(exam, "sent command to create low-priv user")
 
-        com(`creating exam report document for ${exam["name"]}`)
-        exam[E_CREATE_DOC_RESP] = await create_docx_document(exam["name"])
-        await db_update_exam_v2(exam, "created document that will store the exam report")
+        //CLOUDFILE
+        //com(`creating exam report document for ${exam["name"]}`)
+        //exam[E_CREATE_DOC_RESP] = await create_docx_document(exam["name"])
+        //await db_update_exam_v2(exam, "created document that will store the exam report")
 
         com(`done creating resources for ${exam["name"]}`)
       

@@ -8,22 +8,25 @@ import {
 import ServiceNavigation from './ServiceNavigation.jsx';
 import { appLayoutLabels } from '../tables/labels';
 import ExamsTable from './ExamsTable.jsx';
-import { check_create_user_in_vm, check_resource_group_existance, db_list_exams_v2, db_update_exam_v2, delete_resource_group, grant_access_to_doc, remove_access_to_doc, send_email } from '../utils/api.js';
-import { E_CREATE_DOC_RESP, E_CREATE_USER_RESP, E_DELETE_RG_RESP, E_EMAIL, E_ID, E_SHARED_DOC_RESP, E_STATUS, E_STATUS_VALUES, E_USERPASS, E_USERUSER } from '../utils/constants.js';
+import { turn_off_virtual_machine, check_create_user_in_vm, check_resource_group_existance, db_list_exams_v2, db_update_exam_v2, delete_resource_group, grant_access_to_doc, remove_access_to_doc, send_email, turn_on_virtual_machine } from '../utils/api.js';
+import { E_CREATE_DOC_RESP, E_CREATE_USER_RESP, E_DELETE_RG_RESP, E_EMAIL, E_ID, E_LATEST_TURNOFF_RESP, E_LATEST_TURNON_RESP, E_SHARED_DOC_RESP, E_STATUS, E_STATUS_VALUES, E_USERPASS, E_USERUSER } from '../utils/constants.js';
+import DialogConfirmationEmail from './DialogConfirmationEmail.jsx';
+import DialogConfirmationDestroy from './DialogConfirmationDestroy.jsx';
 
 const MainPage = ({ notifications }) => {
 
-  const [ exams, setExams ] = useState([])
-  const [ selectedExams, setSelectedExams ] = useState([])
-  const [ refreshing, setRefreshing ] = useState(true)
+  const [exams, setExams] = useState([])
+  const [selectedExams, setSelectedExams] = useState([])
+  const [refreshing, setRefreshing] = useState(true)
 
   const refreshExams = async () => {
     setRefreshing(true)
     const temp_exams = await db_list_exams_v2()
     console.log("starting refresh")
 
-    for(const exam of temp_exams){
-      if(exam[E_STATUS] === E_STATUS_VALUES.CREATING){ // what to do if exam is being created
+    for (const exam of temp_exams) {
+      console.log(exam)
+      if (exam[E_STATUS] === E_STATUS_VALUES.CREATING) { // what to do if exam is being created
         //check that Resource Group exists
         const rg_exists = await check_resource_group_existance(exam[E_ID])
 
@@ -34,21 +37,21 @@ const MainPage = ({ notifications }) => {
         //if these checks are sucessfull move the status to RUNNING
         console.log(`rg_exist ${rg_exists}`)
         console.log(`check_user_resp ${check_user_resp}`)
-        if(rg_exists && check_user_resp) {
+        if (rg_exists && check_user_resp) {
           exam[E_STATUS] = E_STATUS_VALUES.RUNNING
           await db_update_exam_v2(exam, "from creating to running")
         }
-      } else if (exam[E_STATUS] === E_STATUS_VALUES.RUNNING){ // what to do if exam is running
-
-      } else if (exam[E_STATUS] === E_STATUS_VALUES.STOPPING){ // what to do if exam is being stopped
+      } else if (exam[E_STATUS] === E_STATUS_VALUES.RUNNING) { // what to do if exam is running
+        console.log(exam)
+      } else if (exam[E_STATUS] === E_STATUS_VALUES.STOPPING) { // what to do if exam is being stopped
         //check that RG does not exist
         const rg_exists = await check_resource_group_existance(exam[E_ID])
 
         //if these checks are sucessfull move the status to STOPPED
-        if(!rg_exists)
+        if (!rg_exists)
           exam[E_STATUS] = E_STATUS_VALUES.STOPPED
-          await db_update_exam_v2(exam, "from stopping to stopped")
-      } else if (exam[E_STATUS] === E_STATUS_VALUES.STOPPED){ // what to do if exam is already stopped
+        await db_update_exam_v2(exam, "from stopping to stopped")
+      } else if (exam[E_STATUS] === E_STATUS_VALUES.STOPPED) { // what to do if exam is already stopped
 
       } else {
         console.error("Exam is in an invalid state")
@@ -64,12 +67,13 @@ const MainPage = ({ notifications }) => {
   const sendEmail = async () => {
     setSendingloginemail(true)
 
-    for(const exam of selectedExams){
+    for (const exam of selectedExams) {
       const email = exam[E_EMAIL]
-      const doc = exam[E_CREATE_DOC_RESP]["body"]["name"]
 
-      exam[E_SHARED_DOC_RESP] = await grant_access_to_doc(doc, email)
-      await db_update_exam_v2(exam, "allowed student to access the doc")
+      //DOCONCLOUD
+      //const doc = exam[E_CREATE_DOC_RESP]["body"]["name"]
+      //exam[E_SHARED_DOC_RESP] = await grant_access_to_doc(doc, email)
+      //await db_update_exam_v2(exam, "allowed student to access the doc")
 
       const email_subject = "[OSNAP] Il tuo esame è iniziato"
       const email_body = `
@@ -79,9 +83,7 @@ const MainPage = ({ notifications }) => {
       <pre>IP: ${exam["ipaddr"].properties.ipAddress}
 Porta: 3389
 User: ${exam[E_USERUSER]}
-Password: ${exam[E_USERPASS]}</pre><br/>
-      <a href="${exam[E_SHARED_DOC_RESP]["body"]["value"][0]["link"]["webUrl"]}">Clicca qui</a> o usa il link sottostante per accedere al documento dove poter scrivere l'elaborato da consegnare al termine dell'esame. In alternativa, sarà possibile inviare un documento in risposta a questa mail entro e non oltre il termine massimo di X ore dopo il ricevimento della presente mail.<br/><br/>
-      ${exam[E_SHARED_DOC_RESP]["body"]["value"][0]["link"]["webUrl"]}<br/><br/>
+Password: ${exam[E_USERPASS]}</pre><br/><br/>
       Buona fortuna,<br/>
       Osnap Team`
 
@@ -104,16 +106,21 @@ Password: ${exam[E_USERPASS]}</pre><br/>
   }
 
   const [stoppingexams, setStoppingexams] = useState(false)
-  const stopExams = async () => {
+  const destroyExams = async () => {
     setStoppingexams(true)
-    for (const exam of selectedExams){
+    for (const exam of selectedExams) {
       exam[E_DELETE_RG_RESP] = await delete_resource_group(exam[E_ID])
       exam[E_STATUS] = E_STATUS_VALUES.STOPPING
 
-      //disable access to doc
-      console.log(exam[E_CREATE_DOC_RESP]["body"]["name"])
-      if(exam[E_CREATE_DOC_RESP]["body"]["name"]){
-        await remove_access_to_doc(exam[E_CREATE_DOC_RESP]["body"]["name"])
+      try {
+        //disable access to doc
+        console.log(exam[E_CREATE_DOC_RESP]["body"]["name"])
+        if (exam[E_CREATE_DOC_RESP]["body"]["name"]) {
+          await remove_access_to_doc(exam[E_CREATE_DOC_RESP]["body"]["name"])
+        }
+      } catch (e) {
+        console.error("Error in destroyExams for doc")
+        console.error(e)
       }
 
       await db_update_exam_v2(exam, "stopping exam")
@@ -123,24 +130,63 @@ Password: ${exam[E_USERPASS]}</pre><br/>
     refreshExams()
   }
 
+  const [turningOff, setTurningOff] = useState(false)
+  const [turningOn, setTurningOn] = useState(false)
+
+  const turnOnVMs = async () => {
+    try {
+      setTurningOn(true)
+      for (const exam of selectedExams) {
+        exam[E_LATEST_TURNON_RESP] = await turn_on_virtual_machine(exam[E_ID])
+        //exam[E_STATUS] = E_STATUS_VALUES.STOPPING
+      }
+    } finally {
+      setTurningOn(false)
+    }
+  }
+
+  const turnOffVMs = async () => {
+    try {
+      setTurningOff(true)
+      for (const exam of selectedExams) {
+        exam[E_LATEST_TURNOFF_RESP] = await turn_off_virtual_machine(exam[E_ID])
+        //exam[E_STATUS] = E_STATUS_VALUES.STOPPING
+      }
+    } finally {
+      setTurningOff(false)
+    }
+  }
+
   useEffect(() => {
     refreshExams()
   }, [])
 
+  const [dialogConfirmationEmailOpen, setDialogConfirmationEmailOpen] = useState(false)
+  const [dialogConfirmationDestroyOpen, setDialogConfirmationDestroyOpen] = useState(false)
+
   return (
     <AppLayout
       content={
-        <ExamsTable
-          exams={exams}
-          selectedExams={selectedExams}
-          onSelectionChange={event => setSelectedExams(event.detail.selectedItems)}
-          refreshing={refreshing}
-          onRefresh={refreshExams}
-          sendingloginemail={sendingloginemail}
-          onSendEmail={sendEmail}
-          stoppingexams={stoppingexams}
-          onStopExams={stopExams}
-        />
+        <>
+          <ExamsTable
+            exams={exams}
+            selectedExams={selectedExams}
+            onSelectionChange={event => setSelectedExams(event.detail.selectedItems)}
+            refreshing={refreshing}
+            onRefresh={refreshExams}
+            sendingloginemail={sendingloginemail}
+            onSendEmail={() => setDialogConfirmationEmailOpen(true)}
+            stoppingexams={stoppingexams}
+            onDestroyExams={() => setDialogConfirmationDestroyOpen(true)}
+            onTurnOff={turnOffVMs}
+            onTurnOn={turnOnVMs}
+            turningOff={turningOff}
+            turningOn={turningOn}
+          />
+          <DialogConfirmationEmail selectedExams={selectedExams} onClose={() => setDialogConfirmationEmailOpen(false)} onConfirm={() => { sendEmail(); setDialogConfirmationEmailOpen(false) }} visible={dialogConfirmationEmailOpen} />
+          <DialogConfirmationDestroy selectedExams={selectedExams} onClose={() => setDialogConfirmationDestroyOpen(false)} onConfirm={() => { destroyExams(); setDialogConfirmationDestroyOpen(false) }} visible={dialogConfirmationDestroyOpen} />
+        </>
+
       }
       headerSelector="#header"
       breadcrumbs={

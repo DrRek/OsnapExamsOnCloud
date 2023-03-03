@@ -1,5 +1,5 @@
 const alfaNumChars = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890".split("")
-const allChars = [...alfaNumChars, ...",.;!£$%&/()=?".split("")]
+const allChars = [...alfaNumChars, ...",.;!£$%&/()=?".split("")] //MUST NOT INCLUDE ' TO AVOID ERRORS 
 const numChars = "12345678990".split("")
 
 const getSingleRandomChar = (charset) =>
@@ -11,13 +11,13 @@ const getRandomString = (charset, length) =>
 const generate_admin_username = () =>
   `admin${getRandomString(alfaNumChars,10)}`
 
-const generate_admin_password = () =>
+const generate_admin_password = () => //MUST NOT INCLUDE ' TO AVOID ERRORS 
   `${getRandomString(allChars,15)}`
 
 const generate_user_username = (name) =>
 `${name}${getRandomString(numChars,4)}`
 
-const generate_user_password = () =>
+const generate_user_password = () => //MUST NOT INCLUDE ' TO AVOID ERRORS 
   `${getRandomString(allChars,15)}`
 
 const to_export = {

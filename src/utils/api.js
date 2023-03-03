@@ -137,7 +137,7 @@ export const create_network_security_group = async (resourceGroupName, location 
     location: location,
     properties: {
       securityRules: [{
-        name: "rdp rule",
+        name: "rdp_rule",
         properties: {
           protocol: "tcp",
           sourcePortRange: "*",
@@ -179,32 +179,58 @@ export const create_network_interface = async (name, networkSecurityGroupId, sub
     }
   })
 
-export const create_virtual_machine = async (resourceGroupName, username, password, networkInterfaceId, location = "westeurope") =>
-  make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Compute/virtualMachines/customVirtualMachine`, "2021-03-01", "PUT", {
+export const create_network_interface_2 = async (name, subnetId, resourceGroupName = name, location = "westeurope") =>
+  make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Network/networkInterfaces/${name}`, "2022-07-01", "PUT", {
+    location: location,
+    properties: {
+      ipConfigurations: [{
+        name: name,
+        properties: {
+          subnet: {
+            id: subnetId
+          },
+          privateIPAllocationMethod: "Dynamic"
+        }
+      }]
+    },
+    tags: {
+      cloudexams: "test"
+    }
+  })
+
+const VMNAME = 'customVirtualMachine'
+export const create_virtual_machine = async (resourceGroupName, username, password, netInt1, location = "westeurope") =>
+  make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Compute/virtualMachines/${VMNAME}`, "2021-03-01", "PUT", {
     location: location,
     properties: {
       storageProfile: {
         imageReference: {
           //To correctly create a virtual machine I have to follow this https://learn.microsoft.com/en-us/azure/virtual-machines/windows/upload-generalized-managed?toc=%252fazure%252fvirtual-machines%252fwindows%252ftoc.json
           // https://learn.microsoft.com/en-us/azure/virtual-machines/windows/capture-image-resource
-          //id: `/subscriptions/${SUB_ID}/resourceGroups/Managment-ExamsOnTheCloud/providers/Microsoft.Compute/images/ExamsVMWithSublime`
-          publisher: "MicrosoftWindowsDesktop",
-          offer: "Windows-10",
-          sku: "win10-21h2-pro-g2",
-          version: "latest"
+          id: `/subscriptions/${SUB_ID}/resourceGroups/Managment-ExamsOnTheCloud/providers/Microsoft.Compute/galleries/ExamImageGallery/images/Revit_2023_1/versions/latest`
+          //publisher: "MicrosoftWindowsDesktop",
+          //offer: "Windows-10",
+          //sku: "win10-21h2-pro-g2",
+          //version: "latest"
+        },
+        osDisk: {
+          createOption: "FromImage"
         }
       },
       hardwareProfile: {
         vmSize: "Standard_DS1_v2"
       },
-      osProfile: {
-        computerName: "OSNAP-EXAM-VM",
-        adminUsername: username,
-        adminPassword: password
-      },
+      //osProfile: {
+      //  computerName: "OSNAP-EXAM-VM",
+      //  adminUsername: username,
+      //  adminPassword: password
+      //},
       networkProfile: {
         networkInterfaces: [{
-          id: networkInterfaceId
+          id: netInt1,
+          properties: {
+            primary: true
+          }
         }]
       }
     },
@@ -213,14 +239,24 @@ export const create_virtual_machine = async (resourceGroupName, username, passwo
     }
   })
 
-export const create_user_in_vm = async (resourceGroupName, username, password) => {
+export const turn_on_virtual_machine = async (resourceGroupName, location = "westeurope") =>
+  make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Compute/virtualMachines/${VMNAME}/start`, "2022-11-01", "POST", {})
+
+export const turn_off_virtual_machine = async (resourceGroupName, location = "westeurope") =>
+  make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Compute/virtualMachines/${VMNAME}/deallocate`, "2022-11-01", "POST", {})
+
+export const change_studente_password = async (resourceGroupName, password) => {
   const resp = await make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Compute/virtualMachines/customVirtualMachine/runCommand`, "2019-03-01", "POST", {
     commandId: "RunPowerShellScript",
     script: [
+      `net user studente '${password}'`
+      //'$MACAddress = "00-0D-3A-2F-BA-E0"',
+      //'$NetAdapter = Get-NetAdapter -InterfaceDescription "*#2"',
+      //'Set-NetAdapter $NetAdapter.Name -MacAddress $MACAddress -Confirm:$false',
       //`Write-Output 'Hello, World!'`
-      `New-LocalUser -Name '${username}' -Password (ConvertTo-SecureString '${password}' -AsPlainText -Force) -AccountNeverExpires -PasswordNeverExpires`,
+      //`New-LocalUser -Name '${username}' -Password (ConvertTo-SecureString '${password}' -AsPlainText -Force) -AccountNeverExpires -PasswordNeverExpires`,
       //`New-NetFirewallRule -DisplayName 'Allow RDP' -Direction Inbound -Protocol TCP -LocalPort 3389 -RemoteAddress Any -Action Allow -Program 'C:\Windows\System32\svchost.exe' -Service RemoteDesktop`,
-      `Add-LocalGroupMember -Group 'Remote Desktop Users' -Member '${username}'`
+      //`Add-LocalGroupMember -Group 'Remote Desktop Users' -Member '${username}'`
     ]
   }, undefined, undefined, true)
   return resp
@@ -238,21 +274,30 @@ export const create_user_in_vm = async (resourceGroupName, username, password) =
 }
 
 export const check_create_user_in_vm = async (exam) => {
-  const headers = exam[E_CREATE_USER_REQ].headers
-  const check_url = headers.find(i => i[0] === "location")[1]
-
-  const tokens = await get_token(tokenRequest)
-  var options = {
-    method: "GET",
-    headers: {
-      'Authorization': "Bearer " + tokens.accessToken,
-    },
-  };
-
-  const response = await fetch(check_url, options)
-  return response.status === 202 ? 
-    false :
-    await get_jsonable_response(response)
+  try{
+    const headers = exam[E_CREATE_USER_REQ].headers
+    const location_header = headers.find(i => i[0] === "location")
+    if(!location_header)
+      return false
+    const check_url = location_header[1]
+  
+    const tokens = await get_token(tokenRequest)
+    var options = {
+      method: "GET",
+      headers: {
+        'Authorization': "Bearer " + tokens.accessToken,
+      },
+    };
+  
+    const response = await fetch(check_url, options)
+    return response.status === 202 ? 
+      false :
+      await get_jsonable_response(response)
+  } catch (e){
+    console.error("Error in check_create_user_in_VM")
+    console.error(e)
+    return false
+  }
 }
 
 export const send_email = async (to, subject, body, attachments = []) => {
@@ -374,52 +419,8 @@ export const remove_access_to_doc = async (name) => {
   return
 }
 
-const replicated_workflow = async () => {
-  const new_name = APP_PREFIX + Math.floor(Math.random() * 1000)
-
-  console.log("deletign old resources")
-  await delete_all_resource_groups(APP_PREFIX)
-
-  console.log("creating rg " + new_name)
-  await create_resource_groups(new_name)
-
-  console.log("creating vn")
-  await create_virtual_network(new_name)
-
-  console.log("creating subnet")
-  const subnet = await create_subnet(new_name)
-
-  console.log("creating public ip")
-  await create_public_ip_address(new_name)
-
-  console.log("get ip addresss")
-  const ipaddr = await wait_for_ip_address(new_name)
-  console.log("New ip address is " + ipaddr.properties.ipAddress)
-
-  console.log("creating security group")
-  const netsecgrp = await create_network_security_group(new_name)
-
-  console.log("creating network interface")
-  const netint = await create_network_interface(new_name, netsecgrp.id, subnet.id, ipaddr.id)
-
-  console.log("create virtual machine")
-  await create_virtual_machine(
-    new_name,
-    "veryweirdusername",
-    "V3ryC0m6mmple3.xPewo6rd", //this seems not to be changed 
-    netint.id
-  )
-
-  console.log("create user/password")
-  await create_user_in_vm(new_name, "luca", "th1sIsA32sda")
-  console.log("Command result")
-
-  console.log("end")
-}
-
 export const testFunction = async () => {
 
-  replicated_workflow()
 }
 
 
