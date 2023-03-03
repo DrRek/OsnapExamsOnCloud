@@ -7,8 +7,11 @@ export const E_STATUS = "status"
 export const E_STATUS_VALUES = {
   CREATING: "creating",
   RUNNING: "running",
-  STOPPING: "stopping",
-  STOPPED: "stopped"
+  TURNINGOFF: "turningoff",
+  TURNEDOFF: "turnedoff",
+  TURNINGON: "turningon",
+  DESTROYING: "destroying",
+  DESTROYED: "stopped"
 }
 export const E_CREATE_USER_REQ = "createUser"
 export const E_CREATE_USER_RESP = "createUserResp"

@@ -8,7 +8,7 @@ import {
 import ServiceNavigation from './ServiceNavigation.jsx';
 import { appLayoutLabels } from '../tables/labels';
 import ExamsTable from './ExamsTable.jsx';
-import { turn_off_virtual_machine, check_create_user_in_vm, check_resource_group_existance, db_list_exams_v2, db_update_exam_v2, delete_resource_group, grant_access_to_doc, remove_access_to_doc, send_email, turn_on_virtual_machine } from '../utils/api.js';
+import { turn_off_virtual_machine, check_create_user_in_vm, check_resource_group_existance, db_list_exams_v2, db_update_exam_v2, delete_resource_group, grant_access_to_doc, remove_access_to_doc, send_email, turn_on_virtual_machine, check_virtual_machine } from '../utils/api.js';
 import { E_CREATE_DOC_RESP, E_CREATE_USER_RESP, E_DELETE_RG_RESP, E_EMAIL, E_ID, E_LATEST_TURNOFF_RESP, E_LATEST_TURNON_RESP, E_SHARED_DOC_RESP, E_STATUS, E_STATUS_VALUES, E_USERPASS, E_USERUSER } from '../utils/constants.js';
 import DialogConfirmationEmail from './DialogConfirmationEmail.jsx';
 import DialogConfirmationDestroy from './DialogConfirmationDestroy.jsx';
@@ -23,9 +23,10 @@ const MainPage = ({ notifications }) => {
     setRefreshing(true)
     const temp_exams = await db_list_exams_v2()
     console.log("starting refresh")
+    console.log(temp_exams[0])
 
     for (const exam of temp_exams) {
-      console.log(exam)
+
       if (exam[E_STATUS] === E_STATUS_VALUES.CREATING) { // what to do if exam is being created
         //check that Resource Group exists
         const rg_exists = await check_resource_group_existance(exam[E_ID])
@@ -41,18 +42,45 @@ const MainPage = ({ notifications }) => {
           exam[E_STATUS] = E_STATUS_VALUES.RUNNING
           await db_update_exam_v2(exam, "from creating to running")
         }
-      } else if (exam[E_STATUS] === E_STATUS_VALUES.RUNNING) { // what to do if exam is running
-        console.log(exam)
-      } else if (exam[E_STATUS] === E_STATUS_VALUES.STOPPING) { // what to do if exam is being stopped
+      } else if (exam[E_STATUS] === E_STATUS_VALUES.DESTROYING) { // what to do if exam is being stopped
         //check that RG does not exist
         const rg_exists = await check_resource_group_existance(exam[E_ID])
 
-        //if these checks are sucessfull move the status to STOPPED
+        //if these checks are sucessfull move the status to DESTROYED
         if (!rg_exists)
-          exam[E_STATUS] = E_STATUS_VALUES.STOPPED
+          exam[E_STATUS] = E_STATUS_VALUES.DESTROYED
         await db_update_exam_v2(exam, "from stopping to stopped")
-      } else if (exam[E_STATUS] === E_STATUS_VALUES.STOPPED) { // what to do if exam is already stopped
+      } else if ([E_STATUS_VALUES.TURNINGON, E_STATUS_VALUES.TURNINGOFF, E_STATUS_VALUES.RUNNING, E_STATUS_VALUES.TURNEDOFF].includes(exam[E_STATUS])) {
+        try {
+          const vmRawStatus = await check_virtual_machine(exam[E_ID])
 
+          const vmStatus = vmRawStatus.statuses.find(i => i.code.startsWith("PowerState/")).code
+
+          const prevStatus = exam[E_STATUS]
+          if (vmStatus === "PowerState/running" && exam[E_STATUS] !== E_STATUS_VALUES.RUNNING) {
+            exam[E_STATUS] = E_STATUS_VALUES.RUNNING
+            await db_update_exam_v2(exam, `from ${prevStatus} to ${exam[E_STATUS]}`)
+          } else if (vmStatus === "PowerState/starting" && exam[E_STATUS] !== E_STATUS_VALUES.TURNINGON) {
+            exam[E_STATUS] = E_STATUS_VALUES.TURNINGON
+            await db_update_exam_v2(exam, `from ${prevStatus} to ${exam[E_STATUS]}`)
+          } else if (vmStatus === "PowerState/deallocated" && exam[E_STATUS] !== E_STATUS_VALUES.TURNEDOFF) {
+            exam[E_STATUS] = E_STATUS_VALUES.TURNEDOFF
+            await db_update_exam_v2(exam, `from ${prevStatus} to ${exam[E_STATUS]}`)
+          } else if (vmStatus === "PowerState/deallocating" && exam[E_STATUS] !== E_STATUS_VALUES.TURNINGOFF) {
+            exam[E_STATUS] = E_STATUS_VALUES.TURNINGOFF
+            await db_update_exam_v2(exam, `from ${prevStatus} to ${exam[E_STATUS]}`)
+          }
+
+          if (!["PowerState/running", "PowerState/starting", "PowerState/deallocated", "PowerState/deallocating"].includes(vmStatus)) {
+            console.error("VM is in a weird state from api " + vmStatus)
+            console.error(exam)
+            console.error(vmRawStatus)
+          }
+        } catch (e) {
+          console.error("Error while trying to get status of vm from azure")
+          console.error(e)
+        }
+      } else if (exam[E_STATUS] === E_STATUS_VALUES.DESTROYED) { // what to do if exam is already stopped
       } else {
         console.error("Exam is in an invalid state")
         console.log(exam)
@@ -110,7 +138,7 @@ Password: ${exam[E_USERPASS]}</pre><br/><br/>
     setStoppingexams(true)
     for (const exam of selectedExams) {
       exam[E_DELETE_RG_RESP] = await delete_resource_group(exam[E_ID])
-      exam[E_STATUS] = E_STATUS_VALUES.STOPPING
+      exam[E_STATUS] = E_STATUS_VALUES.DESTROYING
 
       try {
         //disable access to doc
@@ -137,8 +165,7 @@ Password: ${exam[E_USERPASS]}</pre><br/><br/>
     try {
       setTurningOn(true)
       for (const exam of selectedExams) {
-        exam[E_LATEST_TURNON_RESP] = await turn_on_virtual_machine(exam[E_ID])
-        //exam[E_STATUS] = E_STATUS_VALUES.STOPPING
+        await turn_on_virtual_machine(exam[E_ID])
       }
     } finally {
       setTurningOn(false)
@@ -149,8 +176,8 @@ Password: ${exam[E_USERPASS]}</pre><br/><br/>
     try {
       setTurningOff(true)
       for (const exam of selectedExams) {
-        exam[E_LATEST_TURNOFF_RESP] = await turn_off_virtual_machine(exam[E_ID])
-        //exam[E_STATUS] = E_STATUS_VALUES.STOPPING
+        await turn_off_virtual_machine(exam[E_ID])
+        //exam[E_STATUS] = E_STATUS_VALUES.DESTROYING
       }
     } finally {
       setTurningOff(false)
@@ -226,7 +253,7 @@ const HelpOnSide = (
         </li>
         <li>
           <h5>Wait for environments to be ready</h5>
-          <div>Wait for all the created environments to have status "running". This step might take up to <b>10 minutes</b>, click the "Refresh" button to check for updates.</div>
+          <div>Wait for all the created environments to have status "{E_STATUS_VALUES.RUNNING}". This step might take up to <b>10 minutes</b>, click the "Refresh" button to check for updates.</div>
         </li>
         <li>
           <h5>Start the exam</h5>
@@ -238,7 +265,7 @@ const HelpOnSide = (
         </li>
         <li>
           <h5>Check resource groups are terminated</h5>
-          <div>Make sure after max 10 minutes all the exams have status "Stopped". Navigate to "Resource groups" on the azure console and make sure that there are no running resources.<b>Missing to do this steps might cause unwanted expenses on the cloud.</b></div>
+          <div>Make sure after max 10 minutes all the exams have status "{E_STATUS_VALUES.DESTROYED}". Navigate to "Resource groups" on the azure console and make sure that there are no running resources.<b>Missing to do this steps might cause unwanted expenses on the cloud.</b></div>
         </li>
         <li>
           <h5>Save the report documents</h5>

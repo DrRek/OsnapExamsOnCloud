@@ -199,7 +199,7 @@ export const create_network_interface_2 = async (name, subnetId, resourceGroupNa
   })
 
 const VMNAME = 'customVirtualMachine'
-export const create_virtual_machine = async (resourceGroupName, username, password, netInt1, location = "westeurope") =>
+export const create_virtual_machine = async (resourceGroupName, netInt1, location = "westeurope") =>
   make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Compute/virtualMachines/${VMNAME}`, "2021-03-01", "PUT", {
     location: location,
     properties: {
@@ -244,6 +244,9 @@ export const turn_on_virtual_machine = async (resourceGroupName, location = "wes
 
 export const turn_off_virtual_machine = async (resourceGroupName, location = "westeurope") =>
   make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Compute/virtualMachines/${VMNAME}/deallocate`, "2022-11-01", "POST", {})
+
+export const check_virtual_machine = async (resourceGroupName, location = "westeurope") =>
+  make_api_call(`/resourceGroups/${resourceGroupName}/providers/Microsoft.Compute/virtualMachines/${VMNAME}/instanceView`, "2022-11-01", "GET")
 
 export const change_studente_password = async (resourceGroupName, password) => {
   const resp = await make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Compute/virtualMachines/customVirtualMachine/runCommand`, "2019-03-01", "POST", {

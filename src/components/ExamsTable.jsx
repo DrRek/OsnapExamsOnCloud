@@ -36,10 +36,16 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
         return <StatusIndicator type="in-progress">Creating</StatusIndicator>
       if(st === E_STATUS_VALUES.RUNNING)
         return <StatusIndicator>Running</StatusIndicator>
-      if(st === E_STATUS_VALUES.STOPPING)
-        return <StatusIndicator type="pending">Stopping</StatusIndicator>
-      if(st === E_STATUS_VALUES.STOPPED)
-        return <StatusIndicator type="stopped">Stopped</StatusIndicator>
+      if(st === E_STATUS_VALUES.TURNINGON)
+        return <StatusIndicator type="in-progress">Turning ON</StatusIndicator>
+      if(st === E_STATUS_VALUES.TURNINGOFF)
+        return <StatusIndicator type="in-progress">Turning OFF</StatusIndicator>
+      if(st === E_STATUS_VALUES.TURNEDOFF)
+        return <StatusIndicator type="error">Turned OFF</StatusIndicator>
+      if(st === E_STATUS_VALUES.DESTROYING)
+        return <StatusIndicator type="pending">Destroying</StatusIndicator>
+      if(st === E_STATUS_VALUES.DESTROYED)
+        return <StatusIndicator type="stopped">Destroyed</StatusIndicator>
       return <StatusIndicator type="error">Invalid</StatusIndicator>
     },
     minWidth: 120,

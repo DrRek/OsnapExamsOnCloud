@@ -92,7 +92,7 @@ export function NewExamsHeader() {
   return (
     <Header
       variant="h1"
-      description="When you create new exams, resources (including VMs and exam report document) are created. You can later start sending the start email to students and granting them access."
+      description="When you create new exams, resources (including VMs) are created. You can later start sending the start email to students and granting them access."
     >
       Create exams
     </Header>
@@ -156,7 +156,7 @@ export function NewExamsForm({ loadHelpPanelContent }) {
 
       com("creating exams")
       com(`using prefix: ${raw_exam.prefix.value}`)
-      const students_email = raw_exam.raw_students.value.split("\n").map(i=>i.trim())
+      const students_email = raw_exam.raw_students.value.split("\n").map(i=>i.trim()).filter(i => i!=="")
       com(`using student email: ${students_email}`)
 
       for (const student_email of students_email) {
@@ -240,7 +240,7 @@ export function NewExamsForm({ loadHelpPanelContent }) {
         "You must specify a string to use as prefix, only use - as special character." :
         !(await db_is_prefix_unique_v2(raw_exam.prefix.value)) && 
           "Prefixes should be unique, another exam with this prefix already exists"
-    const emailError = raw_exam.raw_students.value.split("\n").map(i => i.trim()).some(i => !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(i)) && "You must specify one valid email for each line."
+    const emailError = raw_exam.raw_students.value.split("\n").map(i => i.trim()).filter(i => i !== "").some(i => !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(i)) && "You must specify one valid email for each line."
 
     if(prefixError || emailError){
       setExam({
