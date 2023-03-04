@@ -106,15 +106,17 @@ const MainPage = ({ notifications }) => {
 
       const email_subject = "[OSNAP] Il tuo esame è iniziato"
       const email_body = `
-      Ciao ${email},<br/>
-      il tuo esame è iniziato in questo istante. Avrai a disposizione X ore.<br/><br/>
-      Accedi alla virtual machine tramite rdp scaricando il file allegato. In alternativa, collegati utilizzando queste impostazioni:<br/>
-      <pre>IP: ${exam["ipaddr"].properties.ipAddress}
+<img src="https://drrek.github.io/OsnapExamsOnCloud/osnap/logo.png" alt="osnap-logo"/>
+Ciao ${email.split("@")[0]},<br/>
+il tuo esame è iniziato in questo istante. Avrai a disposizione 3 ore.<br/>
+Accedi alla virtual machine tramite rdp scaricando ed aprendo il file allegato.<br/><br/>
+In caso di problemi, puoi collegarti tramite Remote Desktop Protocol utilizzando queste impostazioni:<br/>
+<pre>IP: ${exam["ipaddr"].properties.ipAddress}
 Porta: 3389
 User: ${exam[E_USERUSER]}
 Password: ${exam[E_USERPASS]}</pre><br/><br/>
-      Buona fortuna,<br/>
-      Osnap Team`
+Buona fortuna,<br/>
+Osnap Team`
 
       const file = `full address:s:${exam["ipaddr"].properties.ipAddress}:3389\nusername:s:${exam[E_USERUSER]}\npassword:s:${exam[E_USERPASS]}`
 
