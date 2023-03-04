@@ -109,8 +109,8 @@ const MainPage = ({ notifications }) => {
 <img src="https://drrek.github.io/OsnapExamsOnCloud/osnap/logo.png" alt="osnap-logo"/>
 Ciao ${email.split("@")[0]},<br/>
 il tuo esame è iniziato in questo istante. Avrai a disposizione 3 ore.<br/>
-Accedi alla virtual machine tramite rdp scaricando ed aprendo il file allegato.<br/><br/>
-In caso di problemi, puoi collegarti tramite Remote Desktop Protocol utilizzando queste impostazioni:<br/>
+Accedi alla virtual machine tramite Remote Desktop Protocol (RDP) scaricando ed aprendo il file allegato.<br/><br/>
+In caso di problemi, puoi collegarti tramite RDP utilizzando queste impostazioni:<br/>
 <pre>IP: ${exam["ipaddr"].properties.ipAddress}
 Porta: 3389
 User: ${exam[E_USERUSER]}

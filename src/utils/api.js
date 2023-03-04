@@ -1,6 +1,6 @@
 import { signIn, getTokenPopup } from './authPopup'
 import { dbTokenRequest, loginRequest, tokenRequest } from './authConfig';
-import { APP_PREFIX, E_CREATE_USER_REQ, E_LOGS, SUB_ID } from './constants';
+import { APP_PREFIX, E_CREATE_USER_REQ, E_LOGS, E_STATUS_VALUES, SUB_ID } from './constants';
 
 const get_token = async (tokenType) => {
   const tokens = await getTokenPopup(tokenType);
@@ -501,6 +501,29 @@ export const db_list_exams_v2 = async () => {
 
   const resp = await fetch(DB_URL, options)
   return (await resp.json()).value.map(i => db_util_json_to_obj(i))
+}
+
+export const db_list_active_exams_v2 = async () => {
+  const tokens = await get_token(dbTokenRequest)
+
+  const headers = new Headers({
+    'Authorization': `Bearer ${tokens.accessToken}`,
+    'Accept': 'application/json',
+    'x-ms-version': '2019-02-02'
+  });
+
+  const options = {
+    method: 'GET',
+    headers: headers
+  }
+
+  //boundary date set to 7 days ago
+  const boundary_date = new Date();
+  boundary_date.setDate(boundary_date.getDate() - 7);
+
+  const resp = await fetch(`${DB_URL}()?$filter=Timestamp ge datetime'${boundary_date.toISOString()}' or status ne '${E_STATUS_VALUES.DESTROYED}'`, options)
+  const objects = (await resp.json()).value
+  return objects.length === 0 ? true : false
 }
 
 export const db_is_prefix_unique_v2 = async (newID) => {

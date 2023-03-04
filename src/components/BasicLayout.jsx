@@ -1,7 +1,7 @@
 import React from 'react';
 import ServiceNavigation from './ServiceNavigation.jsx';
 import { AppLayout, BreadcrumbGroup, Button, HelpPanel, Icon } from "@cloudscape-design/components"
-import { check_create_user_in_vm, check_resource_group_existance, create_docx_document, db_delete_exam_v2, db_is_prefix_unique_v2, db_list_exams_v2, db_update_exam_v2, delete_all_resource_groups, grant_access_to_doc, send_email, testFunction } from '../utils/api.js';
+import { check_create_user_in_vm, check_resource_group_existance, create_docx_document, db_delete_exam_v2, db_is_prefix_unique_v2, db_list_active_exams_v2, db_list_exams_v2, db_update_exam_v2, delete_all_resource_groups, grant_access_to_doc, send_email, testFunction } from '../utils/api.js';
 import { APP_PREFIX } from '../utils/constants.js';
 
 
@@ -47,6 +47,7 @@ const Content = () => <div>
   <Button onClick={async () => {const r = await db_list_exams_v2(); console.log(r)}}>List user from real db</Button>
   <Button onClick={() => db_is_prefix_unique_v2("test")}>Check if test exists in db</Button>
   <Button onClick={() => db_delete_exam_v2({id:"test-asd"})}>Delete test exists in db</Button>
+  <Button onClick={() => db_list_active_exams_v2()}>List active exams</Button>
 </div>;
 
 // Help panel content
