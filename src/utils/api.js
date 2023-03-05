@@ -1,6 +1,7 @@
 import { signIn, getTokenPopup } from './authPopup'
 import { dbTokenRequest, loginRequest, tokenRequest } from './authConfig';
 import { APP_PREFIX, E_CREATE_USER_REQ, E_LOGS, E_STATUS_VALUES, SUB_ID } from './constants';
+import moment from 'moment';
 
 const get_token = async (tokenType) => {
   const tokens = await getTokenPopup(tokenType);
@@ -247,6 +248,31 @@ export const turn_off_virtual_machine = async (resourceGroupName, location = "we
 
 export const check_virtual_machine = async (resourceGroupName, location = "westeurope") =>
   make_api_call(`/resourceGroups/${resourceGroupName}/providers/Microsoft.Compute/virtualMachines/${VMNAME}/instanceView`, "2022-11-01", "GET")
+
+export const create_budget_alert = async (resourceGroupName, location = "westeurope") =>
+  make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Consumption/budgets/budget`, "2021-10-01", "PUT", {
+    "eTag": "\"1d34d016a593709\"",
+    "properties": {
+      "category": "Cost",
+      "amount": 1,
+      "timeGrain": "Monthly",
+      "timePeriod": {
+        "startDate": `${moment().format("yyyy-MM")}-01T00:00:00Z`
+      },
+      "notifications": {
+        "Actual_GreaterThan_80_Percent": {
+          "enabled": true,
+          "operator": "GreaterThan",
+          "threshold": 80,
+          "locale": "it-it",
+          "contactEmails": [
+            "lucareccia@hotmail.it"
+          ],
+          "thresholdType": "Actual"
+        }
+      }
+    }
+  })
 
 export const change_studente_password = async (resourceGroupName, password) => {
   const resp = await make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Compute/virtualMachines/customVirtualMachine/runCommand`, "2019-03-01", "POST", {

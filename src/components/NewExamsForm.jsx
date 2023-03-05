@@ -25,7 +25,8 @@ import {
   create_subnet,
   wait_for_ip_address,
   create_docx_document,
-  change_studente_password
+  change_studente_password,
+  create_budget_alert
 } from '../utils/api';
 import pwlib from '../utils/pwlib'
 import { APP_PREFIX, E_CREATE_DOC_RESP, E_EMAIL, E_LOGS, E_STATUS, E_STATUS_VALUES } from '../utils/constants'
@@ -209,10 +210,14 @@ export function NewExamsForm({ loadHelpPanelContent }) {
         
         com(`creating virtual machine for ${exam["name"]}`)
         exam["adminUsername"] = "osnap"
-        exam["adminPassword"] = "7QRGeViKKCxWq5g"
+        exam["adminPassword"] = "7QRGeViKKCxWq5g" //TODO: has to be changed
         await db_update_exam_v2(exam, "choosen username/password combination for admin")
         await create_virtual_machine(exam["id"], exam["netint"].id)
         await db_update_exam_v2(exam, "created virtual machine")
+
+        com(`creating alert on budget for ${exam["name"]}`)
+        await create_budget_alert(exam["id"])
+        await db_update_exam_v2(exam, "created alert on buget")
 
         com(`changing password of low-privilege user for ${exam["name"]}`)
         exam["userUsername"] = "studente"
