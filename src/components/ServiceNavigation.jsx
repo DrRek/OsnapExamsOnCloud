@@ -24,6 +24,7 @@ const items = [
     text: 'Internal pages',
     items: [
       { type: 'link', text: 'Ongoing exams', href: '/' },
+      { type: 'link', text: 'All exams', href: '/exams/all' },
       ...internal_pages_if_localhost
     ]
   },

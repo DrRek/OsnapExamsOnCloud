@@ -11,14 +11,14 @@ const getRandomString = (charset, length) =>
 const generate_admin_username = () =>
   `admin${getRandomString(alfaNumChars,10)}`
 
-const generate_admin_password = () => //MUST NOT INCLUDE ' TO AVOID ERRORS 
-  `${getRandomString(allChars,15)}`
+const generate_admin_password = () => //MUST NOT INCLUDE SPECIAL CHAR BECAUSE net user HAS PROBLEMS WITH ESCAPING
+  `${getRandomString(alfaNumChars,40)}`
 
 const generate_user_username = (name) =>
-`${name}${getRandomString(numChars,4)}`
+  `${name}${getRandomString(numChars,4)}`
 
-const generate_user_password = () => //MUST NOT INCLUDE ' TO AVOID ERRORS 
-  `${getRandomString(allChars,15)}`
+const generate_user_password = () => //MUST NOT INCLUDE SPECIAL CHAR BECAUSE net user HAS PROBLEMS WITH ESCAPING
+  `${getRandomString(alfaNumChars,40)}`
 
 const to_export = {
   generate_admin_username,

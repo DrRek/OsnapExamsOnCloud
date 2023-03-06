@@ -274,11 +274,12 @@ export const create_budget_alert = async (resourceGroupName, location = "westeur
     }
   })
 
-export const change_studente_password = async (resourceGroupName, password) => {
+export const change_vm_passwords = async (resourceGroupName, adminPw, studentPw) => {
   const resp = await make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Compute/virtualMachines/customVirtualMachine/runCommand`, "2019-03-01", "POST", {
     commandId: "RunPowerShellScript",
     script: [
-      `net user studente '${password}'`
+      `net user studente ${studentPw}`,
+      `net user osnap ${adminPw}`
       //'$MACAddress = "00-0D-3A-2F-BA-E0"',
       //'$NetAdapter = Get-NetAdapter -InterfaceDescription "*#2"',
       //'Set-NetAdapter $NetAdapter.Name -MacAddress $MACAddress -Confirm:$false',
@@ -548,8 +549,7 @@ export const db_list_active_exams_v2 = async () => {
   boundary_date.setDate(boundary_date.getDate() - 7);
 
   const resp = await fetch(`${DB_URL}()?$filter=Timestamp ge datetime'${boundary_date.toISOString()}' or status ne '${E_STATUS_VALUES.DESTROYED}'`, options)
-  const objects = (await resp.json()).value
-  return objects.length === 0 ? true : false
+  return (await resp.json()).value.map(i => db_util_json_to_obj(i))
 }
 
 export const db_is_prefix_unique_v2 = async (newID) => {

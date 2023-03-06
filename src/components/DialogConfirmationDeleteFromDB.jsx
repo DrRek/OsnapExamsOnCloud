@@ -18,7 +18,7 @@ export default ({ onConfirm, onClose, visible, selectedExams }) => (
         </SpaceBetween>
       </Box>
     }
-    header="Are you sure you want to destroy the selected VMs?"
+    header="Are you sure you want to permanently delete the selected VMs from the history? There is no valid reason to do it."
   >
     <SpaceBetween direction="vertical" size="xs">
       <TextContent>

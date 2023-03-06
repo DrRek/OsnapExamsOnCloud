@@ -7,13 +7,13 @@ import {
 } from '@cloudscape-design/components';
 import ServiceNavigation from './ServiceNavigation.jsx';
 import { appLayoutLabels } from '../tables/labels';
-import ExamsTable from './ExamsTable.jsx';
-import { turn_off_virtual_machine, check_create_user_in_vm, check_resource_group_existance, db_list_exams_v2, db_update_exam_v2, delete_resource_group, grant_access_to_doc, remove_access_to_doc, send_email, turn_on_virtual_machine, check_virtual_machine } from '../utils/api.js';
+import CurrentExamsTable from './CurrentExamsTable.jsx';
+import { turn_off_virtual_machine, check_create_user_in_vm, check_resource_group_existance, db_list_active_exams_v2, db_update_exam_v2, delete_resource_group, grant_access_to_doc, remove_access_to_doc, send_email, turn_on_virtual_machine, check_virtual_machine } from '../utils/api.js';
 import { E_CREATE_DOC_RESP, E_CREATE_USER_RESP, E_DELETE_RG_RESP, E_EMAIL, E_ID, E_LATEST_TURNOFF_RESP, E_LATEST_TURNON_RESP, E_SHARED_DOC_RESP, E_STATUS, E_STATUS_VALUES, E_USERPASS, E_USERUSER } from '../utils/constants.js';
 import DialogConfirmationEmail from './DialogConfirmationEmail.jsx';
 import DialogConfirmationDestroy from './DialogConfirmationDestroy.jsx';
 
-const MainPage = ({ notifications }) => {
+const CurrentExamsPage = ({ notifications }) => {
 
   const [exams, setExams] = useState([])
   const [selectedExams, setSelectedExams] = useState([])
@@ -22,7 +22,7 @@ const MainPage = ({ notifications }) => {
   const refreshExams = async () => {
     setRefreshing(true)
     setSelectedExams([])
-    const temp_exams = await db_list_exams_v2()
+    const temp_exams = await db_list_active_exams_v2()
     console.log("starting refresh")
     console.log(temp_exams[0])
 
@@ -88,7 +88,7 @@ const MainPage = ({ notifications }) => {
       }
     }
 
-    setExams(await db_list_exams_v2())
+    setExams(await db_list_active_exams_v2())
     setRefreshing(false)
   }
 
@@ -199,7 +199,7 @@ Osnap Team`
     <AppLayout
       content={
         <>
-          <ExamsTable
+          <CurrentExamsTable
             exams={exams}
             selectedExams={selectedExams}
             onSelectionChange={event => setSelectedExams(event.detail.selectedItems)}
@@ -280,4 +280,4 @@ const HelpOnSide = (
   </HelpPanel>
 );
 
-export default MainPage
+export default CurrentExamsPage

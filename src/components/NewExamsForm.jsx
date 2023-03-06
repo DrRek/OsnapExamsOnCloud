@@ -25,7 +25,7 @@ import {
   create_subnet,
   wait_for_ip_address,
   create_docx_document,
-  change_studente_password,
+  change_vm_passwords,
   create_budget_alert
 } from '../utils/api';
 import pwlib from '../utils/pwlib'
@@ -209,8 +209,6 @@ export function NewExamsForm({ loadHelpPanelContent }) {
         //await db_update_exam_v2(exam, "created #2 network interface")
         
         com(`creating virtual machine for ${exam["name"]}`)
-        exam["adminUsername"] = "osnap"
-        exam["adminPassword"] = "7QRGeViKKCxWq5g" //TODO: has to be changed
         await db_update_exam_v2(exam, "choosen username/password combination for admin")
         await create_virtual_machine(exam["id"], exam["netint"].id)
         await db_update_exam_v2(exam, "created virtual machine")
@@ -219,11 +217,13 @@ export function NewExamsForm({ loadHelpPanelContent }) {
         await create_budget_alert(exam["id"])
         await db_update_exam_v2(exam, "created alert on buget")
 
-        com(`changing password of low-privilege user for ${exam["name"]}`)
+        com(`changing password of low-privilege and high-privilege users for ${exam["name"]}`)
+        exam["adminUsername"] = "osnap"
+        exam["adminPassword"] = pwlib.generate_admin_password()
         exam["userUsername"] = "studente"
         exam["userPassword"] = pwlib.generate_user_password()
         await db_update_exam_v2(exam, "choosen password combination for low-priv user")
-        exam["createUser"] = await change_studente_password(exam["id"], exam["userPassword"])
+        exam["createUser"] = await change_vm_passwords(exam["id"], exam["adminPassword"], exam["userPassword"])
         await db_update_exam_v2(exam, "sent command to create low-priv user")
 
         //CLOUDFILE
