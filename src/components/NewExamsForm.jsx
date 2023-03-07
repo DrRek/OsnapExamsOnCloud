@@ -29,7 +29,7 @@ import {
   create_budget_alert
 } from '../utils/api';
 import pwlib from '../utils/pwlib'
-import { APP_PREFIX, E_CREATE_DOC_RESP, E_EMAIL, E_LOGS, E_STATUS, E_STATUS_VALUES } from '../utils/constants'
+import { APP_PREFIX, E_CREATE_DOC_RESP, E_EMAIL, E_EXAM_DURATION, E_LOGS, E_STATUS, E_STATUS_VALUES } from '../utils/constants'
 import { useHistory } from 'react-router-dom';
 import { internal_navigate } from '../utils/navigation';
 
@@ -63,6 +63,19 @@ export default function ExamsPanel({ exam, onChange }) {
             placeholder={'student1@outlook.com\nstudent2@gmail.com'}
             value={exam.raw_students.value}
             onChange={({ detail: { value } }) => onChange('raw_students', value)}
+          />
+        </FormField>
+        <FormField
+          description="This value is used in the communication email sent to the student. You will still need to stop the exam manually."
+          label="Exam duration (hours)"
+          errorText={exam[E_EXAM_DURATION].error}
+          i18nStrings={{ errorIconAriaLabel: 'Error' }}
+        >
+          <Input
+            value={exam[E_EXAM_DURATION].value}
+            type="number"
+            placeholder='3'
+            onChange={({ detail: { value } }) => onChange(E_EXAM_DURATION, value)}
           />
         </FormField>
       </SpaceBetween>
@@ -130,6 +143,10 @@ export function NewExamsForm({ loadHelpPanelContent }) {
     raw_students: {
       value: "",
       error: ""
+    },
+    [E_EXAM_DURATION]: {
+      value: "",
+      error: ""
     }
   })
 
@@ -164,7 +181,8 @@ export function NewExamsForm({ loadHelpPanelContent }) {
         const exam = {
           [E_LOGS]: [],
           email: student_email,
-          [E_STATUS]: E_STATUS_VALUES.CREATING
+          [E_STATUS]: E_STATUS_VALUES.CREATING,
+          [E_EXAM_DURATION]: raw_exam[E_EXAM_DURATION].value
         }
         com(`creating resources for ${exam[E_EMAIL]}`)
 
@@ -241,13 +259,17 @@ export function NewExamsForm({ loadHelpPanelContent }) {
 
   const isExamValid = async () => {
     const prefixError = 
-      !/[a-zA-Z0-9-]+/.test(raw_exam.prefix.value) ?
+      !/[a-zA-Z0-9-]+/.test(raw_exam.prefix.value)  ?
         "You must specify a string to use as prefix, only use - as special character." :
         !(await db_is_prefix_unique_v2(raw_exam.prefix.value)) && 
           "Prefixes should be unique, another exam with this prefix already exists"
-    const emailError = raw_exam.raw_students.value.split("\n").map(i => i.trim()).filter(i => i !== "").some(i => !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(i)) && "You must specify one valid email for each line."
 
-    if(prefixError || emailError){
+    const emailError = (raw_exam.raw_students.value.trim().length === 0 || raw_exam.raw_students.value.split("\n").map(i => i.trim()).filter(i => i !== "").some(i => !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(i))) && "You must specify one valid email for each line."
+    
+    const durationError = (!/^[0-9]\d*$/.test(raw_exam[E_EXAM_DURATION].value) || raw_exam[E_EXAM_DURATION].value < 1 || raw_exam[E_EXAM_DURATION].value > 10) &&
+      "The exam duration is expressed in hours and must be an integer between 1 and 10"
+
+    if(prefixError || emailError || durationError){
       setExam({
         ...raw_exam,
         prefix: {
@@ -258,10 +280,14 @@ export function NewExamsForm({ loadHelpPanelContent }) {
           ...raw_exam.raw_students,
           error: emailError
         },
+        [E_EXAM_DURATION]: {
+          ...raw_exam[E_EXAM_DURATION],
+          error: durationError
+        }
       })
+      return false
     }
-
-    return !(prefixError || emailError)
+    return true
   }
 
   return (

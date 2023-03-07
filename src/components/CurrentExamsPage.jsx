@@ -9,7 +9,7 @@ import ServiceNavigation from './ServiceNavigation.jsx';
 import { appLayoutLabels } from '../tables/labels';
 import CurrentExamsTable from './CurrentExamsTable.jsx';
 import { turn_off_virtual_machine, check_create_user_in_vm, check_resource_group_existance, db_list_active_exams_v2, db_update_exam_v2, delete_resource_group, grant_access_to_doc, remove_access_to_doc, send_email, turn_on_virtual_machine, check_virtual_machine } from '../utils/api.js';
-import { E_CREATE_DOC_RESP, E_CREATE_USER_RESP, E_DELETE_RG_RESP, E_EMAIL, E_ID, E_LATEST_TURNOFF_RESP, E_LATEST_TURNON_RESP, E_SHARED_DOC_RESP, E_STATUS, E_STATUS_VALUES, E_USERPASS, E_USERUSER } from '../utils/constants.js';
+import { E_CREATE_DOC_RESP, E_CREATE_USER_RESP, E_DELETE_RG_RESP, E_EMAIL, E_EXAM_DURATION, E_ID, E_LATEST_TURNOFF_RESP, E_LATEST_TURNON_RESP, E_SHARED_DOC_RESP, E_STATUS, E_STATUS_VALUES, E_USERPASS, E_USERUSER } from '../utils/constants.js';
 import DialogConfirmationEmail from './DialogConfirmationEmail.jsx';
 import DialogConfirmationDestroy from './DialogConfirmationDestroy.jsx';
 
@@ -108,7 +108,7 @@ const CurrentExamsPage = ({ notifications }) => {
       const email_body = `
 <img src="https://drrek.github.io/OsnapExamsOnCloud/osnap/logo.png" alt="osnap-logo"/><br/><br/>
 Ciao ${email.split("@")[0]},<br/>
-il tuo esame è iniziato in questo istante. Avrai a disposizione 3 ore.<br/>
+il tuo esame è iniziato in questo istante. Avrai a disposizione ${exam[E_EXAM_DURATION]} ${exam[E_EXAM_DURATION] === 1 ? 'ora' : 'ore'}.<br/>
 Accedi alla virtual machine tramite Remote Desktop Protocol (RDP) <b>scaricando ed aprendo il file allegato</b>.<br/><br/>
 In caso di problemi, puoi collegarti tramite RDP utilizzando queste impostazioni:<br/>
 <pre>IP: ${exam["ipaddr"].properties.ipAddress}

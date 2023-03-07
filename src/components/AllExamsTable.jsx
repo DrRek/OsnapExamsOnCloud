@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT-0
 import React from 'react';
 import { useCollection } from '@cloudscape-design/collection-hooks';
-import { Button, Pagination, Table, TextFilter, SpaceBetween } from '@cloudscape-design/components';
+import { Button, Pagination, Table, TextFilter, SpaceBetween, Spinner } from '@cloudscape-design/components';
 import { paginationLabels, examsSelectionLabels, addColumnSortLabels, getFilterCounterText } from '../tables/labels';
 import { TableHeader } from './TableHeader';
 import { useHistory } from 'react-router-dom';
@@ -41,21 +41,19 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
   }
 ]);
 
-export default function CurrentExamsTable({ exams, selectedExams, onSelectionChange, refreshing, onRefresh, onDeleteExamsFromDB, onShowDetails, deletingExamsFromDB }) {
+export default function AllExamsTable({ exams, selectedExams, onSelectionChange, refreshing, onRefresh, onDeleteExamsFromDB, onShowDetails, deletingExamsFromDB }) {
   const { items, filteredItemsCount, collectionProps, filterProps, paginationProps } = useCollection(
     exams,
     {
       filtering: {
-        empty: <div></div>,
-        noMatch: <div></div>,
+        empty: refreshing ? <Spinner/> : <div>no exams</div>,
+        noMatch: <div>no matching exams</div>,
       },
       pagination: { pageSize: 50 },
       sorting: { defaultState: { sortingColumn: COLUMN_DEFINITIONS[2] } },
       selection: {},
     }
   );
-
-  const history = useHistory()
 
   return (
     <Table
@@ -75,6 +73,7 @@ export default function CurrentExamsTable({ exams, selectedExams, onSelectionCha
           title="All Exams"
           actionButtons={
             <SpaceBetween size="xs" direction="horizontal">
+              <Button loading={refreshing || deletingExamsFromDB} onClick={onRefresh}>Refresh</Button>
               <Button disabled={selectedExams.length === 0} onClick={onShowDetails}>Show all logs</Button>
               <Button disabled={selectedExams.length === 0} loading={deletingExamsFromDB} onClick={onDeleteExamsFromDB}>Delete from db</Button>
             </SpaceBetween>

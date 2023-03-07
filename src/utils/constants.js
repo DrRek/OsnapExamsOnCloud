@@ -25,5 +25,6 @@ export const E_ADMINPASS = "adminPassword"
 export const E_ADMINUSER = "adminUsername"
 export const E_LATEST_TURNON_RESP = "latestturnonreq"
 export const E_LATEST_TURNOFF_RESP = "latestturnoffreq"
+export const E_EXAM_DURATION = "examduration"
 
 export const BASE_PATH = "/OsnapExamsOnCloud"

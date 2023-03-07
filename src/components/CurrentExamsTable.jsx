@@ -1,8 +1,6 @@
-// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-// SPDX-License-Identifier: MIT-0
 import React from 'react';
 import { useCollection } from '@cloudscape-design/collection-hooks';
-import { Button, Pagination, Table, TextFilter, SpaceBetween, Link, StatusIndicator } from '@cloudscape-design/components';
+import { Button, Pagination, Table, TextFilter, SpaceBetween, Link, StatusIndicator, Spinner } from '@cloudscape-design/components';
 import { paginationLabels, examsSelectionLabels, addColumnSortLabels, getFilterCounterText } from '../tables/labels';
 import { TableHeader } from './TableHeader';
 import { useHistory } from 'react-router-dom';
@@ -104,8 +102,8 @@ export default function CurrentExamsTable({ exams, selectedExams, onSelectionCha
     exams,
     {
       filtering: {
-        empty: <div></div>,
-        noMatch: <div></div>,
+        empty: refreshing ? <Spinner/> : <div>no exams</div>,
+        noMatch: <div>no matching exams</div>,
       },
       pagination: { pageSize: 50 },
       sorting: { defaultState: { sortingColumn: COLUMN_DEFINITIONS[3] } },

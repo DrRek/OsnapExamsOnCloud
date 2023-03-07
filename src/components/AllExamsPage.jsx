@@ -8,7 +8,7 @@ import {
 import ServiceNavigation from './ServiceNavigation.jsx';
 import { appLayoutLabels } from '../tables/labels';
 import AllExamsTable from './AllExamsTable.jsx';
-import { db_list_exams_v2 } from '../utils/api.js';
+import { db_delete_exam_v2, db_list_exams_v2 } from '../utils/api.js';
 import { E_STATUS_VALUES } from '../utils/constants.js';
 import DialogConfirmationDeleteFromDB from './DialogConfirmationDeleteFromDB.jsx';
 import DialogExpandInfoExams from './DialogExpandInfoExams.jsx';
@@ -32,7 +32,17 @@ const CurrentExamsPage = ({ notifications }) => {
 
   const [dialogConfirmationDeleteFromDBOpen, setDialogConfirmationDeleteFromDBOpen] = useState(false)
   const [dialogExandInfoExams, setDialogExandInfoExams] = useState(false)
-  const deleteExamsFromDB = () => {
+
+  const [deletingExams, setDeletingExams] = useState(false)
+  const deleteExamsFromDB = async () => {
+    setDeletingExams(true)
+    try{
+      for(const exam of selectedExams)
+        await db_delete_exam_v2(exam)
+    } finally {
+      setDeletingExams(false)
+    }
+    refreshExams()
   }
 
   return (
@@ -47,7 +57,7 @@ const CurrentExamsPage = ({ notifications }) => {
             onRefresh={refreshExams}
             onShowDetails={() => setDialogExandInfoExams(true)}
             onDeleteExamsFromDB={() => setDialogConfirmationDeleteFromDBOpen(true)}
-            deletingExamsFromDB={dialogConfirmationDeleteFromDBOpen}
+            deletingExamsFromDB={dialogConfirmationDeleteFromDBOpen || deletingExams}
           />
           <DialogConfirmationDeleteFromDB selectedExams={selectedExams} onClose={() => setDialogConfirmationDeleteFromDBOpen(false)} onConfirm={() => { deleteExamsFromDB(); setDialogConfirmationDeleteFromDBOpen(false) }} visible={dialogConfirmationDeleteFromDBOpen} />
           <DialogExpandInfoExams exams={selectedExams} onClose={() => setDialogExandInfoExams(false)} visible={dialogExandInfoExams} />
