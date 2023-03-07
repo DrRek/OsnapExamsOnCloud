@@ -5,7 +5,7 @@ import SpaceBetween from "@cloudscape-design/components/space-between";
 import Button from "@cloudscape-design/components/button";
 import { TextContent } from "@cloudscape-design/components";
 
-export default ({ onConfirm, onClose, visible, selectedExams }) => (
+export default ({ onClose, visible, exams }) => (
   <Modal
     onDismiss={onClose}
     visible={visible}
@@ -13,19 +13,20 @@ export default ({ onConfirm, onClose, visible, selectedExams }) => (
     footer={
       <Box float="right">
         <SpaceBetween direction="horizontal" size="xs">
-          <Button variant="link" onClick={onClose}>No, cancel</Button>
-          <Button variant="primary" onClick={onConfirm}>Yes, destroy selected VMs</Button>
+          <Button variant="primary" onClick={onClose}>Close</Button>
         </SpaceBetween>
       </Box>
     }
-    header="Are you sure you want to permanently delete the selected VMs from the history? There is no valid reason to do it."
+    header="Information about exams"
   >
     <SpaceBetween direction="vertical" size="xs">
       <TextContent>
-        <h5>You selected the following students:</h5>
-        <ul>
-          {selectedExams.map(({ id, email }) => <li key={id}>{email}</li>)}
-        </ul>
+        <h5>Exams:</h5>
+        {exams.map(exam => 
+          <pre key={exam.id}>
+            {JSON.stringify(exam, null, 4)}
+          </pre>  
+        )}
       </TextContent>
     </SpaceBetween>
   </Modal>

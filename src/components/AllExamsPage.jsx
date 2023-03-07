@@ -11,6 +11,7 @@ import AllExamsTable from './AllExamsTable.jsx';
 import { db_list_exams_v2 } from '../utils/api.js';
 import { E_STATUS_VALUES } from '../utils/constants.js';
 import DialogConfirmationDeleteFromDB from './DialogConfirmationDeleteFromDB.jsx';
+import DialogExpandInfoExams from './DialogExpandInfoExams.jsx';
 
 const CurrentExamsPage = ({ notifications }) => {
 
@@ -30,10 +31,9 @@ const CurrentExamsPage = ({ notifications }) => {
   }, [])
 
   const [dialogConfirmationDeleteFromDBOpen, setDialogConfirmationDeleteFromDBOpen] = useState(false)
+  const [dialogExandInfoExams, setDialogExandInfoExams] = useState(false)
   const deleteExamsFromDB = () => {
   }
-
-  const showExamsDetails = () => {}
 
   return (
     <AppLayout
@@ -45,11 +45,12 @@ const CurrentExamsPage = ({ notifications }) => {
             onSelectionChange={event => setSelectedExams(event.detail.selectedItems)}
             refreshing={refreshing}
             onRefresh={refreshExams}
-            onShowDetails={showExamsDetails}
+            onShowDetails={() => setDialogExandInfoExams(true)}
             onDeleteExamsFromDB={() => setDialogConfirmationDeleteFromDBOpen(true)}
             deletingExamsFromDB={dialogConfirmationDeleteFromDBOpen}
           />
           <DialogConfirmationDeleteFromDB selectedExams={selectedExams} onClose={() => setDialogConfirmationDeleteFromDBOpen(false)} onConfirm={() => { deleteExamsFromDB(); setDialogConfirmationDeleteFromDBOpen(false) }} visible={dialogConfirmationDeleteFromDBOpen} />
+          <DialogExpandInfoExams exams={selectedExams} onClose={() => setDialogExandInfoExams(false)} visible={dialogExandInfoExams} />
         </>
 
       }

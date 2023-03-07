@@ -24,7 +24,7 @@ export default ({ onConfirm, onClose, visible, selectedExams }) => (
       <TextContent>
         <h5>You selected the following students:</h5>
         <ul>
-          {selectedExams.map(({ email }) => <li key={email}>{email}</li>)}
+          {selectedExams.map(({ id, email }) => <li key={id}>{email}</li>)}
         </ul>
       </TextContent>
     </SpaceBetween>

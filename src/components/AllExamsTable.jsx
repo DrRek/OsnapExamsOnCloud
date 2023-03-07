@@ -62,6 +62,7 @@ export default function CurrentExamsTable({ exams, selectedExams, onSelectionCha
       {...collectionProps}
       selectedItems={selectedExams}
       onSelectionChange={onSelectionChange}
+      trackBy="id"
       columnDefinitions={COLUMN_DEFINITIONS}
       items={items}
       selectionType="multi"
