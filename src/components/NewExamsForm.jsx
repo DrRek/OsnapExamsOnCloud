@@ -19,17 +19,14 @@ import {
   create_public_ip_address,
   create_network_security_group,
   create_network_interface,
-  create_network_interface_2,
   create_virtual_machine,
-  create_user_in_vm,
   create_subnet,
   wait_for_ip_address,
-  create_docx_document,
   change_vm_passwords,
   create_budget_alert
 } from '../utils/api';
 import pwlib from '../utils/pwlib'
-import { APP_PREFIX, E_CREATE_DOC_RESP, E_EMAIL, E_EXAM_DURATION, E_LOGS, E_STATUS, E_STATUS_VALUES } from '../utils/constants'
+import { APP_PREFIX, E_EMAIL, E_EXAM_DURATION, E_LOGS, E_STATUS, E_STATUS_VALUES } from '../utils/constants'
 import { useHistory } from 'react-router-dom';
 import { internal_navigate } from '../utils/navigation';
 
@@ -134,7 +131,7 @@ function BaseFormContent({ content, onCancel, onCreate }) {
   );
 }
 
-export function NewExamsForm({ loadHelpPanelContent }) {
+export function NewExamsForm() {
   const [raw_exam, setExam] = useState({
     prefix: {
       value: "",

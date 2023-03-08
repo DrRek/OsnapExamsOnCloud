@@ -4,7 +4,7 @@ import { Button, Pagination, Table, TextFilter, SpaceBetween, Link, StatusIndica
 import { paginationLabels, examsSelectionLabels, addColumnSortLabels, getFilterCounterText } from '../tables/labels';
 import { TableHeader } from './TableHeader';
 import { useHistory } from 'react-router-dom';
-import { E_ADMINPASS, E_ADMINUSER, E_CREATE_DOC_RESP, E_EMAIL, E_ID, E_LOGS, E_STATUS, E_STATUS_VALUES, E_USERPASS, E_USERUSER } from '../utils/constants';
+import { E_ADMINPASS, E_ADMINUSER, E_EMAIL, E_ID, E_LOGS, E_STATUS, E_STATUS_VALUES, E_USERPASS, E_USERUSER } from '../utils/constants';
 import Moment from 'react-moment';
 import { get_resource_group_link } from '../utils/api';
 import { saveAs } from 'file-saver';
@@ -14,7 +14,7 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
     id: E_ID,
     sortingField: E_ID,
     header: 'Exam ID',
-    cell: item => <Link external href={get_resource_group_link(item[E_ID])}>{item[E_ID]}</Link>,
+    cell: item => <Link external href={get_resource_group_link(item[E_ID])}>{item[E_ID].replace("ExamsOnTheCloud-","")}</Link>,
     minWidth: 180,
   },
   {

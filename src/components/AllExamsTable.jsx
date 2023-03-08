@@ -1,11 +1,8 @@
-// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-// SPDX-License-Identifier: MIT-0
 import React from 'react';
 import { useCollection } from '@cloudscape-design/collection-hooks';
 import { Button, Pagination, Table, TextFilter, SpaceBetween, Spinner } from '@cloudscape-design/components';
 import { paginationLabels, examsSelectionLabels, addColumnSortLabels, getFilterCounterText } from '../tables/labels';
 import { TableHeader } from './TableHeader';
-import { useHistory } from 'react-router-dom';
 import { E_EMAIL, E_ID, E_LOGS } from '../utils/constants';
 import Moment from 'react-moment';
 

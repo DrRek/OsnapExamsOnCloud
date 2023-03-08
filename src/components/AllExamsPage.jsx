@@ -9,7 +9,6 @@ import ServiceNavigation from './ServiceNavigation.jsx';
 import { appLayoutLabels } from '../tables/labels';
 import AllExamsTable from './AllExamsTable.jsx';
 import { db_delete_exam_v2, db_list_exams_v2 } from '../utils/api.js';
-import { E_STATUS_VALUES } from '../utils/constants.js';
 import DialogConfirmationDeleteFromDB from './DialogConfirmationDeleteFromDB.jsx';
 import DialogExpandInfoExams from './DialogExpandInfoExams.jsx';
 
