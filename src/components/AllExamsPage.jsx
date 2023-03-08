@@ -94,33 +94,8 @@ const HelpOnSide = (
     }
   >
     <div>
-      <h4>Steps to launch an exam</h4>
-      <ul>
-        <li>
-          <h5>Create the environment</h5>
-          <div>Click on the "Create Exam" button to create environments for each student.</div>
-        </li>
-        <li>
-          <h5>Wait for environments to be ready</h5>
-          <div>Wait for all the created environments to have status "{E_STATUS_VALUES.RUNNING}". This step might take up to <b>10 minutes</b>, click the "Refresh" button to check for updates.</div>
-        </li>
-        <li>
-          <h5>Start the exam</h5>
-          <div>Select all the exams that have to start and click on "Share VM & doc". An email will be sent to each partecipant with instruction on how to login.</div>
-        </li>
-        <li>
-          <h5>End the exam</h5>
-          <div>At the end of the exam, select the exams you want to terminate and click on "Stop exams". Access will be revoked to both the VM and the report document</div>
-        </li>
-        <li>
-          <h5>Check resource groups are terminated</h5>
-          <div>Make sure after max 10 minutes all the exams have status "{E_STATUS_VALUES.DESTROYED}". Navigate to "Resource groups" on the azure console and make sure that there are no running resources.<b>Missing to do this steps might cause unwanted expenses on the cloud.</b></div>
-        </li>
-        <li>
-          <h5>Save the report documents</h5>
-          <div>Each student will either send or use the integrated doc to submit their report. Navigate to "Exam report folder" and save all the reports in a safe way.</div>
-        </li>
-      </ul>
+      <h4>All Exams</h4>
+      <p>In this page it is possible to see all the past and previous exams. Mainly used for log and debug purpose.</p>
     </div>
   </HelpPanel>
 );

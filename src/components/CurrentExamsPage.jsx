@@ -257,23 +257,19 @@ const HelpOnSide = (
         </li>
         <li>
           <h5>Wait for environments to be ready</h5>
-          <div>Wait for all the created environments to have status "{E_STATUS_VALUES.RUNNING}". This step might take up to <b>10 minutes</b>, click the "Refresh" button to check for updates.</div>
+          <div>Wait for all the created environments to have status "Running". This step might take up to <b>5 minutes</b>, click the "Refresh" button to check for updates.</div>
         </li>
         <li>
           <h5>Start the exam</h5>
-          <div>Select all the exams that have to start and click on "Share VM & doc". An email will be sent to each partecipant with instruction on how to login.</div>
+          <div>Select all the exams that have to start and click on "Send Email". An email will be sent to each partecipant with instruction on how to login.</div>
         </li>
         <li>
           <h5>End the exam</h5>
-          <div>At the end of the exam, select the exams you want to terminate and click on "Stop exams". Access will be revoked to both the VM and the report document</div>
+          <div>At the end of the exam, connect as Admin, copy the exam artifacts to the cloud, select the exams you want to terminate and click on "Destroy VM". All the resources created for the student not manually backend up will be destroyed.</div>
         </li>
         <li>
           <h5>Check resource groups are terminated</h5>
-          <div>Make sure after max 10 minutes all the exams have status "{E_STATUS_VALUES.DESTROYED}". Navigate to "Resource groups" on the azure console and make sure that there are no running resources.<b>Missing to do this steps might cause unwanted expenses on the cloud.</b></div>
-        </li>
-        <li>
-          <h5>Save the report documents</h5>
-          <div>Each student will either send or use the integrated doc to submit their report. Navigate to "Exam report folder" and save all the reports in a safe way.</div>
+          <div>Make sure after max 5 minutes all the exams have status "Destroyed". Navigate to "Resource groups" on the azure console and make sure that there are no running resources.<b>Missing to do this steps might cause unwanted expenses on the cloud.</b></div>
         </li>
       </ul>
     </div>
