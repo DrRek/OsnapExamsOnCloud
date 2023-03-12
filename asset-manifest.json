@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/OsnapExamsOnCloud/static/css/main.fa842994.css",
-    "main.js": "/OsnapExamsOnCloud/static/js/main.80705a57.js",
+    "main.js": "/OsnapExamsOnCloud/static/js/main.5f05409a.js",
     "index.html": "/OsnapExamsOnCloud/index.html",
     "main.fa842994.css.map": "/OsnapExamsOnCloud/static/css/main.fa842994.css.map",
-    "main.80705a57.js.map": "/OsnapExamsOnCloud/static/js/main.80705a57.js.map"
+    "main.5f05409a.js.map": "/OsnapExamsOnCloud/static/js/main.5f05409a.js.map"
   },
   "entrypoints": [
     "static/css/main.fa842994.css",
-    "static/js/main.80705a57.js"
+    "static/js/main.5f05409a.js"
   ]
 }
