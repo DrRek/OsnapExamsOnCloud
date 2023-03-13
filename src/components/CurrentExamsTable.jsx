@@ -62,7 +62,7 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
     cell: item => 
       <>
         <Button iconName="download" variant="inline-icon" onClick={() => {
-          const file = new Blob([`full address:s:${item["ipaddr"].properties.ipAddress}:3389\nusername:s:${item[E_ADMINUSER]}\npassword:s:${item[E_ADMINPASS]}\nredirectclipboard:1:1\ndynamic resolution:i:1\nsmart sizing:i:1`], {type: "text/plain;charset=utf-8"});
+          const file = new Blob([`full address:s:${item["ipaddr"].properties.ipAddress}:3389\nusername:s:${item[E_ADMINUSER]}\npassword:s:${item[E_ADMINPASS]}\nredirectclipboard:i:1\ndynamic resolution:i:1\nsmart sizing:i:1`], {type: "text/plain;charset=utf-8"});
           saveAs(
             file,
             'admin.rdp'
@@ -94,7 +94,7 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
     cell: item => 
     <>
       <Button iconName="download" variant="inline-icon" aria-label="asd" onClick={() => {
-        const file = new Blob([`full address:s:${item["ipaddr"].properties.ipAddress}:3389\nusername:s:${item[E_USERUSER]}\npassword:s:${item[E_USERPASS]}\nredirectclipboard:1:1\ndynamic resolution:i:1\nsmart sizing:i:1`], {type: "text/plain;charset=utf-8"});
+        const file = new Blob([`full address:s:${item["ipaddr"].properties.ipAddress}:3389\nusername:s:${item[E_USERUSER]}\npassword:s:${item[E_USERPASS]}\nredirectclipboard:i:1\ndynamic resolution:i:1\nsmart sizing:i:1`], {type: "text/plain;charset=utf-8"});
         saveAs(
           file,
           'student.rdp'

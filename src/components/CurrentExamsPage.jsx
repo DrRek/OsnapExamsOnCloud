@@ -118,7 +118,7 @@ Password: ${exam[E_USERPASS]}</pre><br/><br/>
 Buona fortuna,<br/>
 Osnap Team`
 
-      const file = `full address:s:${exam["ipaddr"].properties.ipAddress}:3389\nusername:s:${exam[E_USERUSER]}\npassword:s:${exam[E_USERPASS]}`
+      const file = `full address:s:${exam["ipaddr"].properties.ipAddress}:3389\nusername:s:${exam[E_USERUSER]}\npassword:s:${exam[E_USERPASS]}\nredirectclipboard:i:0\ndynamic resolution:i:1\nsmart sizing:i:1`
 
       const attachments = [{
         "@odata.type": "#microsoft.graph.fileAttachment",
