@@ -1,6 +1,6 @@
 import React from 'react';
 import { useCollection } from '@cloudscape-design/collection-hooks';
-import { Button, Pagination, Table, TextFilter, SpaceBetween, Link, StatusIndicator, Spinner } from '@cloudscape-design/components';
+import { Button, Pagination, Table, TextFilter, SpaceBetween, Link, StatusIndicator, Spinner, Box, Popover } from '@cloudscape-design/components';
 import { paginationLabels, examsSelectionLabels, addColumnSortLabels, getFilterCounterText } from '../tables/labels';
 import { TableHeader } from './TableHeader';
 import { useHistory } from 'react-router-dom';
@@ -60,26 +60,64 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
   {
     id: 'adminrdp',
     cell: item => 
-      <Button iconName="file" variant="inline-icon" onClick={() => {
-        const file = new Blob([`full address:s:${item["ipaddr"].properties.ipAddress}:3389\nusername:s:${item[E_ADMINUSER]}\npassword:s:${item[E_ADMINPASS]}`], {type: "text/plain;charset=utf-8"});
-        saveAs(
-          file,
-          'admin.rdp'
-        )
-      }} />,
+      <>
+        <Button iconName="download" variant="inline-icon" onClick={() => {
+          const file = new Blob([`full address:s:${item["ipaddr"].properties.ipAddress}:3389\nusername:s:${item[E_ADMINUSER]}\npassword:s:${item[E_ADMINPASS]}\nredirectclipboard:1:1\ndynamic resolution:i:1\nsmart sizing:i:1`], {type: "text/plain;charset=utf-8"});
+          saveAs(
+            file,
+            'admin.rdp'
+          )
+        }} />
+        <Box margin={{ right: 'xxs' }} display="inline-block">
+          <Popover
+            size="small"
+            position="top"
+            triggerType="custom"
+            dismissButton={false}
+            content={<StatusIndicator type="success">Admin pass copied</StatusIndicator>}
+          >
+            <Button
+              variant="inline-icon"
+              iconName="copy"
+              onClick={() => {
+                navigator.clipboard.writeText(item[E_ADMINPASS]);
+              }}
+            />
+          </Popover>
+        </Box>
+      </>,
     header: 'Admin RDP',
     minWidth: 50,
   },
   {
     id: 'studentrdp',
     cell: item => 
-      <Button iconName="file" variant="inline-icon" onClick={() => {
-        const file = new Blob([`full address:s:${item["ipaddr"].properties.ipAddress}:3389\nusername:s:${item[E_USERUSER]}\npassword:s:${item[E_USERPASS]}`], {type: "text/plain;charset=utf-8"});
+    <>
+      <Button iconName="download" variant="inline-icon" aria-label="asd" onClick={() => {
+        const file = new Blob([`full address:s:${item["ipaddr"].properties.ipAddress}:3389\nusername:s:${item[E_USERUSER]}\npassword:s:${item[E_USERPASS]}\nredirectclipboard:1:1\ndynamic resolution:i:1\nsmart sizing:i:1`], {type: "text/plain;charset=utf-8"});
         saveAs(
           file,
           'student.rdp'
         )
-      }} />,
+      }} />
+      <Box margin={{ right: 'xxs' }} display="inline-block">
+        <Popover
+          size="small"
+          position="top"
+          triggerType="custom"
+          dismissButton={false}
+          content={<StatusIndicator type="success">Student pass copied</StatusIndicator>}
+        >
+          <Button
+            variant="inline-icon"
+            iconName="copy"
+            onClick={() => {
+              navigator.clipboard.writeText(item[E_USERPASS]);
+            }}
+          />
+        </Popover>
+      </Box>
+    </>,
     header: 'Student RDP',
     minWidth: 50,
   },
