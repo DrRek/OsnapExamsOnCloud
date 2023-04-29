@@ -106,24 +106,25 @@ const CurrentExamsPage = ({ notifications }) => {
 
       const email_subject = "[OSNAP] Il tuo esame è iniziato"
       const email_body = `
-<img src="https://drrek.github.io/OsnapExamsOnCloud/osnap/logo.png" alt="osnap-logo"/><br/><br/>
+<img src="https://drrek.github.io/OsnapExamsOnCloud/osnap/logo.png" alt="osnap-logo"/><br/>
+<b>Questa mail contiene informazioni private, non inoltrare o condividere in altro modo il suo contenuto.</b><br/><br/>
 Ciao ${email.split("@")[0]},<br/>
 il tuo esame è iniziato in questo istante. Avrai a disposizione ${exam[E_EXAM_DURATION]} ${exam[E_EXAM_DURATION] === 1 ? 'ora' : 'ore'}.<br/>
 Per accedere all'esame <b>scarica ed apri il file allegato</b>. Se richiesto, usa la password indicata in questa mail.<br/><br/>
-In alternativa, collegati manualmente tramite RDP, queste sono le impostazioni:<br/>
+In alternativa, collegati manualmente tramite RDP usando queste impostazioni:<br/>
 <pre>IP: ${exam["ipaddr"].properties.ipAddress}
 Porta: 3389
 User: ${exam[E_USERUSER]}
-Password: ${exam[E_USERPASS]}</pre><br/><br/>
+Password: ${exam[E_USERPASS]}</pre><br/>
 Buona fortuna,<br/>
-Osnap Team<br/><br/><br/><br/>
-FAQ<br/><br/>
-Cosa fare se vedo una schermata con scritto <b>"Impossibile verificare l'autore della connessione remota"</b>?
-<img src="https://drrek.github.io/OsnapExamsOnCloud/osnap/rdp-warn-1.png" alt="" width="500"/><br/>
-Clicca su <b>"Connetti"</b>.<br/><br/><br/>
-Cosa fare se vedo una schermata con scritto <b>"Impossibile verificare l'identità del computer remoto"</b>?
-<img src="https://drrek.github.io/OsnapExamsOnCloud/osnap/rdp-warn-2.png" alt="" width="500"/><br/>
-Clicca su <b>"Si"</b>.<br/><br/><br/>`
+Osnap Team<br/><br/><br/>
+<h3>FAQ</h3>
+<h4>Cosa fare compare una schermata con scritto <b>"Impossibile verificare l'autore della connessione remota"</b>?</h4>
+<ul><li>Cliccare su <b>"Connetti"</b>.</li></ul>
+<img src="https://drrek.github.io/OsnapExamsOnCloud/rdp-warn-1.png" alt="" width="400"/><br/>
+<h4>Cosa fare compare una schermata con scritto <b>"Impossibile verificare l'identità del computer remoto"</b>?</h4>
+<ul><li>Cliccare su <b>"Si"</b>.</li></ul>
+<img src="https://drrek.github.io/OsnapExamsOnCloud/rdp-warn-2.png" alt="" width="400"/><br/>`
 
       const file = `full address:s:${exam["ipaddr"].properties.ipAddress}:3389\nusername:s:${exam[E_USERUSER]}\npassword:s:${exam[E_USERPASS]}\nredirectclipboard:i:0\ndynamic resolution:i:1\nsmart sizing:i:1`
 
