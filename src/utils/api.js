@@ -219,7 +219,7 @@ export const create_virtual_machine = async (resourceGroupName, netInt1, locatio
         }
       },
       hardwareProfile: {
-        vmSize: "Standard_DS3_v2"
+        vmSize: "Standard_D4s_v3"
       },
       //osProfile: {
       //  computerName: "OSNAP-EXAM-VM",

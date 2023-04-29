@@ -109,14 +109,21 @@ const CurrentExamsPage = ({ notifications }) => {
 <img src="https://drrek.github.io/OsnapExamsOnCloud/osnap/logo.png" alt="osnap-logo"/><br/><br/>
 Ciao ${email.split("@")[0]},<br/>
 il tuo esame è iniziato in questo istante. Avrai a disposizione ${exam[E_EXAM_DURATION]} ${exam[E_EXAM_DURATION] === 1 ? 'ora' : 'ore'}.<br/>
-Accedi alla virtual machine tramite Remote Desktop Protocol (RDP) <b>scaricando ed aprendo il file allegato</b>.<br/><br/>
-In caso di problemi, puoi collegarti tramite RDP utilizzando queste impostazioni:<br/>
+Per accedere all'esame <b>scarica ed apri il file allegato</b>. Se richiesto, usa la password indicata in questa mail.<br/><br/>
+In alternativa, collegati manualmente tramite RDP, queste sono le impostazioni:<br/>
 <pre>IP: ${exam["ipaddr"].properties.ipAddress}
 Porta: 3389
 User: ${exam[E_USERUSER]}
 Password: ${exam[E_USERPASS]}</pre><br/><br/>
 Buona fortuna,<br/>
-Osnap Team`
+Osnap Team<br/><br/><br/><br/>
+FAQ<br/><br/>
+Cosa fare se vedo una schermata con scritto <b>"Impossibile verificare l'autore della connessione remota"</b>?
+<img src="https://drrek.github.io/OsnapExamsOnCloud/osnap/rdp-warn-1.png" alt="" width="500"/><br/>
+Clicca su <b>"Connetti"</b>.<br/><br/><br/>
+Cosa fare se vedo una schermata con scritto <b>"Impossibile verificare l'identità del computer remoto"</b>?
+<img src="https://drrek.github.io/OsnapExamsOnCloud/osnap/rdp-warn-2.png" alt="" width="500"/><br/>
+Clicca su <b>"Si"</b>.<br/><br/><br/>`
 
       const file = `full address:s:${exam["ipaddr"].properties.ipAddress}:3389\nusername:s:${exam[E_USERUSER]}\npassword:s:${exam[E_USERPASS]}\nredirectclipboard:i:0\ndynamic resolution:i:1\nsmart sizing:i:1`
 
