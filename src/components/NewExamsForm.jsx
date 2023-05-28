@@ -85,7 +85,7 @@ export default function ExamsPanel({ exam, onChange }) {
             onChange={({ detail: { value } }) => onChange(E_EXAM_DURATION, value)}
           />
         </FormField>
-        <FormField
+        {/*<FormField
           description="This value is to select the right VM combo (CPU/RAM)."
           label="VM instance type"
           errorText={exam[E_EXAM_VM_INSTANCE_TYPE].error}
@@ -100,6 +100,7 @@ export default function ExamsPanel({ exam, onChange }) {
             selectedAriaLabel="Selected"    
           />
         </FormField>
+        */}
       </SpaceBetween>
     </Container>
   );
