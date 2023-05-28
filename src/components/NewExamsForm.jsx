@@ -9,7 +9,8 @@ import {
   Button,
   Form,
   Modal,
-  Spinner
+  Spinner,
+  Select
 } from '@cloudscape-design/components';
 import { 
   db_is_prefix_unique_v2,
@@ -26,9 +27,18 @@ import {
   create_budget_alert
 } from '../utils/api';
 import pwlib from '../utils/pwlib'
-import { APP_PREFIX, E_EMAIL, E_EXAM_DURATION, E_LOGS, E_STATUS, E_STATUS_VALUES } from '../utils/constants'
+import { APP_PREFIX, E_EMAIL, E_EXAM_DURATION, E_LOGS, E_STATUS, E_STATUS_VALUES, E_EXAM_VM_INSTANCE_TYPE } from '../utils/constants'
 import { useHistory } from 'react-router-dom';
 import { internal_navigate } from '../utils/navigation';
+
+
+const DEFAULT_INSTANCE_TYPE_OPTION_INDEX = 0
+const INSTANCE_TYPE_OPTIONS = [
+  { label: "Default - Standard_D4s_v3", value: "Standard_D4s_v3" },        
+  { label: "Prova 1 - Standard_D8s_v3", value: "Standard_D8s_v3" },        
+  { label: "Prova 2 - Standard_NC4as_T4_v3", value: "Standard_NC4as_T4_v3" },
+  { label: "Prova 3 - Standard_NV6ads_A10_v5", value: "Standard_NV6ads_A10_v5" },
+]
 
 export default function ExamsPanel({ exam, onChange }) {
   return (
@@ -73,6 +83,21 @@ export default function ExamsPanel({ exam, onChange }) {
             type="number"
             placeholder='3'
             onChange={({ detail: { value } }) => onChange(E_EXAM_DURATION, value)}
+          />
+        </FormField>
+        <FormField
+          description="This value is to select the right VM combo (CPU/RAM)."
+          label="VM instance type"
+          errorText={exam[E_EXAM_VM_INSTANCE_TYPE].error}
+          i18nStrings={{ errorIconAriaLabel: 'Error' }}
+        >
+          <Select      
+            selectedOption={exam[E_EXAM_VM_INSTANCE_TYPE].value}      
+            onChange={({ detail }) =>        
+              onChange(E_EXAM_VM_INSTANCE_TYPE, detail.selectedOption) 
+            }      
+            options={INSTANCE_TYPE_OPTIONS}      
+            selectedAriaLabel="Selected"    
           />
         </FormField>
       </SpaceBetween>
@@ -144,6 +169,9 @@ export function NewExamsForm() {
     [E_EXAM_DURATION]: {
       value: "",
       error: ""
+    },
+    [E_EXAM_VM_INSTANCE_TYPE]: {
+      value: INSTANCE_TYPE_OPTIONS[DEFAULT_INSTANCE_TYPE_OPTION_INDEX]
     }
   })
 
@@ -152,7 +180,7 @@ export function NewExamsForm() {
       ...raw_exam,
       [key]: {
         error: "",
-        value: value.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        value: value.normalize ? value.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : value
       }
     })
   }
@@ -225,7 +253,7 @@ export function NewExamsForm() {
         
         com(`creating virtual machine for ${exam["name"]}`)
         await db_update_exam_v2(exam, "choosen username/password combination for admin")
-        await create_virtual_machine(exam["id"], exam["netint"].id)
+        await create_virtual_machine(exam["id"], exam["netint"].id, raw_exam[E_EXAM_VM_INSTANCE_TYPE]["value"]["value"])
         await db_update_exam_v2(exam, "created virtual machine")
 
         com(`creating alert on budget for ${exam["name"]}`)

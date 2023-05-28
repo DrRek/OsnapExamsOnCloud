@@ -200,7 +200,7 @@ export const create_network_interface_2 = async (name, subnetId, resourceGroupNa
   })
 
 const VMNAME = 'customVirtualMachine'
-export const create_virtual_machine = async (resourceGroupName, netInt1, location = "westeurope") =>
+export const create_virtual_machine = async (resourceGroupName, netInt1, instanceType = "Standard_D4s_v3", location = "westeurope") =>
   make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Compute/virtualMachines/${VMNAME}`, "2021-03-01", "PUT", {
     location: location,
     properties: {
@@ -219,7 +219,7 @@ export const create_virtual_machine = async (resourceGroupName, netInt1, locatio
         }
       },
       hardwareProfile: {
-        vmSize: "Standard_D4s_v3"
+        vmSize: instanceType
       },
       //osProfile: {
       //  computerName: "OSNAP-EXAM-VM",
