@@ -36,8 +36,8 @@ const DEFAULT_INSTANCE_TYPE_OPTION_INDEX = 0
 const INSTANCE_TYPE_OPTIONS = [
   { label: "Default - Standard_D4s_v3", value: "Standard_D4s_v3" },        
   { label: "Prova 1 - Standard_D8s_v3", value: "Standard_D8s_v3" },        
-  { label: "Prova 2 - Standard_NC4as_T4_v3", value: "Standard_NC4as_T4_v3" },
-  { label: "Prova 3 - Standard_NV6ads_A10_v5", value: "Standard_NV6ads_A10_v5" },
+  //{ label: "Prova 2 - Standard_NC4as_T4_v3", value: "Standard_NC4as_T4_v3" },
+  //{ label: "Prova 3 - Standard_NV6ads_A10_v5", value: "Standard_NV6ads_A10_v5" },
 ]
 
 export default function ExamsPanel({ exam, onChange }) {
@@ -57,7 +57,7 @@ export default function ExamsPanel({ exam, onChange }) {
             value={exam.prefix.value}
             ariaRequired={true}
             placeholder="27-01-2023-exam1"
-            onChange={({ detail: { value } }) => onChange('prefix', value)}
+            onChange={({ detail: { value } }) => onChange('prefix', value.replace(" ", "_"))}
           />
         </FormField>
         <FormField
@@ -85,7 +85,7 @@ export default function ExamsPanel({ exam, onChange }) {
             onChange={({ detail: { value } }) => onChange(E_EXAM_DURATION, value)}
           />
         </FormField>
-        {/*<FormField
+        <FormField
           description="This value is to select the right VM combo (CPU/RAM)."
           label="VM instance type"
           errorText={exam[E_EXAM_VM_INSTANCE_TYPE].error}
@@ -100,7 +100,6 @@ export default function ExamsPanel({ exam, onChange }) {
             selectedAriaLabel="Selected"    
           />
         </FormField>
-        */}
       </SpaceBetween>
     </Container>
   );
