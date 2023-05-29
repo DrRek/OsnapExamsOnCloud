@@ -72,6 +72,7 @@ export default function ExamsPanel({ exam, onChange }) {
             onChange={({ detail: { value } }) => onChange('raw_students', value)}
           />
         </FormField>
+        {/*
         <FormField
           description="This value is used in the communication email sent to the student. You will still need to stop the exam manually."
           label="Exam duration (hours)"
@@ -85,6 +86,7 @@ export default function ExamsPanel({ exam, onChange }) {
             onChange={({ detail: { value } }) => onChange(E_EXAM_DURATION, value)}
           />
         </FormField>
+        */}
         <FormField
           description="This value is to select the right VM combo (CPU/RAM)."
           label="VM instance type"
@@ -167,7 +169,7 @@ export function NewExamsForm() {
       error: ""
     },
     [E_EXAM_DURATION]: {
-      value: "",
+      value: 3, //value deprecated
       error: ""
     },
     [E_EXAM_VM_INSTANCE_TYPE]: {

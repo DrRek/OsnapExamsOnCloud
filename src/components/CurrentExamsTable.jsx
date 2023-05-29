@@ -9,6 +9,14 @@ import Moment from 'react-moment';
 import { get_resource_group_link } from '../utils/api';
 import { saveAs } from 'file-saver';
 
+const ErrorBoundary = ({children, fallback=<div>rendering error</div>}) => {
+ try{
+  return children
+ } catch {
+  return fallback
+ }
+}
+
 const COLUMN_DEFINITIONS = addColumnSortLabels([
   {
     id: E_ID,
@@ -60,12 +68,12 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
   {
     id: 'adminrdp',
     cell: item => 
-      <>
+      <ErrorBoundary>
         <Button iconName="download" variant="inline-icon" onClick={() => {
           const file = new Blob([`full address:s:${item["ipaddr"].properties.ipAddress}:3389\nusername:s:${item[E_ADMINUSER]}\npassword:s:${item[E_ADMINPASS]}\nredirectclipboard:i:1\ndynamic resolution:i:1\nsmart sizing:i:1`], {type: "text/plain;charset=utf-8"});
           saveAs(
             file,
-            'admin.rdp'
+            item[E_ID].replace("ExamsOnTheCloud-","")+'-admin.rdp'
           )
         }} />
         <Box margin={{ right: 'xxs' }} display="inline-block">
@@ -85,7 +93,7 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
             />
           </Popover>
         </Box>
-      </>,
+      </ErrorBoundary>,
     header: 'Admin RDP',
     minWidth: 50,
   },
@@ -97,7 +105,7 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
         const file = new Blob([`full address:s:${item["ipaddr"].properties.ipAddress}:3389\nusername:s:${item[E_USERUSER]}\npassword:s:${item[E_USERPASS]}\nredirectclipboard:i:1\ndynamic resolution:i:1\nsmart sizing:i:1`], {type: "text/plain;charset=utf-8"});
         saveAs(
           file,
-          'student.rdp'
+          item[E_ID].replace("ExamsOnTheCloud-","")+'-student.rdp'
         )
       }} />
       <Box margin={{ right: 'xxs' }} display="inline-block">

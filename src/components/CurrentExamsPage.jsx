@@ -104,9 +104,8 @@ const CurrentExamsPage = ({ notifications }) => {
       //exam[E_SHARED_DOC_RESP] = await grant_access_to_doc(doc, email)
       //await db_update_exam_v2(exam, "allowed student to access the doc")
 
-      const email_subject = "[OSNAP] Il tuo esame è iniziato"
+      const email_subject = "OSNAP - istruzioni accesso macchina remota"
       const email_body = `
-<img src="https://drrek.github.io/OsnapExamsOnCloud/osnap/logo.png" alt="osnap-logo"/><br/>
 <b>Questa mail contiene informazioni private, non inoltrare o condividere in altro modo il suo contenuto.</b><br/><br/>
 Ciao ${email.split("@")[0]},<br/>
 la seguente e-mail contiene le istruzioni per accedere alla macchina remota a te riservata per sostenere l'esame.<br/>
