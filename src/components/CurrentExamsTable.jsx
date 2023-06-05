@@ -8,14 +8,7 @@ import { E_ADMINPASS, E_ADMINUSER, E_EMAIL, E_ID, E_LOGS, E_STATUS, E_STATUS_VAL
 import Moment from 'react-moment';
 import { get_resource_group_link } from '../utils/api';
 import { saveAs } from 'file-saver';
-
-const ErrorBoundary = ({children, fallback=<div>rendering error</div>}) => {
- try{
-  return children
- } catch {
-  return fallback
- }
-}
+import { ErrorBoundary } from "react-error-boundary";
 
 const COLUMN_DEFINITIONS = addColumnSortLabels([
   {
@@ -68,7 +61,9 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
   {
     id: 'adminrdp',
     cell: item => 
-      <ErrorBoundary>
+      <ErrorBoundary fallbackRender={() =>
+        <div>error</div>
+      }>
         <Button iconName="download" variant="inline-icon" onClick={() => {
           const file = new Blob([`full address:s:${item["ipaddr"].properties.ipAddress}:3389\nusername:s:${item[E_ADMINUSER]}\npassword:s:${item[E_ADMINPASS]}\nredirectclipboard:i:1\ndynamic resolution:i:1\nsmart sizing:i:1`], {type: "text/plain;charset=utf-8"});
           saveAs(
@@ -132,7 +127,7 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
   {
     id: 'ip',
     header: 'IP',
-    cell: item => item["ipaddr"]["properties"]["ipAddress"],
+    cell: item => item?.ipaddr?.properties?.ipAddress || "Error",
     minWidth: 100,
   },
   {
