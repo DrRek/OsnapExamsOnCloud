@@ -24,7 +24,9 @@ import {
   create_subnet,
   wait_for_ip_address,
   change_vm_passwords,
-  create_budget_alert
+  create_budget_alert,
+  create_storage_container,
+  create_storage_container_sas
 } from '../utils/api';
 import pwlib from '../utils/pwlib'
 import { APP_PREFIX, E_EMAIL, E_EXAM_DURATION, E_LOGS, E_STATUS, E_STATUS_VALUES, E_EXAM_VM_INSTANCE_TYPE } from '../utils/constants'
@@ -262,13 +264,23 @@ export function NewExamsForm() {
         await create_budget_alert(exam["id"])
         await db_update_exam_v2(exam, "created alert on buget")
 
+        exam["storage_container_name"] = "c-"+exam["id"].replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase()
+
+        com(`creating desktop backup container ${exam["name"]}`)
+        exam["storage_container"] = await create_storage_container(exam["storage_container_name"])
+        await db_update_exam_v2(exam, "created desktop backup container")
+
+        com(`creating desktop backup container SAS ${exam["name"]}`)
+        exam["storage_container_sas"] = await create_storage_container_sas(exam["storage_container_name"])
+        await db_update_exam_v2(exam, "created desktop backup container SAS")
+
         com(`changing password of low-privilege and high-privilege users for ${exam["name"]}`)
         exam["adminUsername"] = "osnap"
         exam["adminPassword"] = pwlib.generate_admin_password()
         exam["userUsername"] = "studente"
         exam["userPassword"] = pwlib.generate_user_password()
         await db_update_exam_v2(exam, "choosen password combination for low-priv user")
-        exam["createUser"] = await change_vm_passwords(exam["id"], exam["adminPassword"], exam["userPassword"])
+        exam["createUser"] = await change_vm_passwords(exam["id"], exam["adminPassword"], exam["userPassword"], exam["storage_container_name"], exam["storage_container_sas"].serviceSasToken)
         await db_update_exam_v2(exam, "sent command to create low-priv user")
 
         //CLOUDFILE

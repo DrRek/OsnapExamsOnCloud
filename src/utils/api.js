@@ -274,12 +274,16 @@ export const create_budget_alert = async (resourceGroupName, location = "westeur
     }
   })
 
-export const change_vm_passwords = async (resourceGroupName, adminPw, studentPw) => {
+export const change_vm_passwords = async (resourceGroupName, adminPw, studentPw, storageContainerName="test", storageContainerToken="sv=2015-04-05&sr=c&spr=https&se=2023-10-31T00%3A00%3A00.0000000Z&sp=racwdl&sig=PgrbvkWLWLoFh55nuxW%2BnSM2LiIfRfT%2Fwe7DPkKN6vA%3D") => {
   const resp = await make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Compute/virtualMachines/customVirtualMachine/runCommand`, "2019-03-01", "POST", {
     commandId: "RunPowerShellScript",
     script: [
       `net user studente ${studentPw}`,
-      `net user osnap ${adminPw}`
+      `net user osnap ${adminPw}`,
+      `cmd.exe /C 'C:\\Windows\\System32\\chcp.com 65001 & echo @echo off > C:\\Users\\studente\\azcopy_windows_amd64_10.20.1\\syncer.bat'`,
+      `cmd.exe /C 'C:\\Windows\\System32\\chcp.com 65001 & echo C:\\Users\\studente\\azcopy_windows_amd64_10.20.1\\azcopy.exe sync "C:\\Users\\studente\\Desktop" "https://osnapdbexamsonthecloud.blob.core.windows.net/${storageContainerName}?${storageContainerToken.replaceAll("%","%%")}" --delete-destination true >> C:\\Users\\studente\\azcopy_windows_amd64_10.20.1\\syncer.bat'`,
+      `cmd.exe /C 'C:\\Windows\\System32\\chcp.com 65001 & echo move nul 2^>^&0 >> C:\\Users\\studente\\azcopy_windows_amd64_10.20.1\\syncer.bat'`,
+      `schtasks /create /sc minute /mo 1 /tn "SyncDesktopToContainer" /tr "cmd.exe /C start /min C:\\Users\\studente\\azcopy_windows_amd64_10.20.1\\syncer.bat & exit" /st 00:00 /F /IT /ru "studente"`
       //'$MACAddress = "00-0D-3A-2F-BA-E0"',
       //'$NetAdapter = Get-NetAdapter -InterfaceDescription "*#2"',
       //'Set-NetAdapter $NetAdapter.Name -MacAddress $MACAddress -Confirm:$false',
@@ -290,17 +294,6 @@ export const change_vm_passwords = async (resourceGroupName, adminPw, studentPw)
     ]
   }, undefined, undefined, true)
   return resp
-/*
-  const tokens = await getTokenPopup(tokenRequest);
-
-  const fetchUrl = resp.headers.get('azure-asyncOperation')
-  while (true) {
-    const result = await fetch(fetchUrl, { headers: { authorization: `Bearer ${tokens.accessToken}` } })
-    if (result.status === "Succeeded")
-      break
-    await sleep(1000)
-  }
-  */
 }
 
 export const check_create_user_in_vm = async (exam) => {
@@ -448,6 +441,28 @@ export const remove_access_to_doc = async (name) => {
   }
   return
 }
+
+export const create_storage_container = async (name) => {
+  const resp = await make_api_call(`resourceGroups/Managment-ExamsOnTheCloud/providers/Microsoft.Storage/storageAccounts/osnapdbexamsonthecloud/blobServices/default/containers/${name}`, "2023-01-01", "PUT", {
+    properties: {
+      defaultEncryptionScope: "$account-encryption-key",
+      denyEncryptionScopeOverride: false,
+      metadata: {
+        test: "test"
+      }
+    }
+  }, undefined, undefined, false)
+  return resp
+}
+
+export const create_storage_container_sas = async (name) => 
+  make_api_call(`resourceGroups/Managment-ExamsOnTheCloud/providers/Microsoft.Storage/storageAccounts/osnapdbexamsonthecloud/listServiceSas`, "2023-01-01", "POST", {
+    canonicalizedResource: `/blob/osnapdbexamsonthecloud/${name}`,
+    signedExpiry: "2023-10-31T00:00:00.0000000Z",
+    signedPermission: "racwdl",
+    signedProtocol: "https",
+    signedResource: "c"
+  }, undefined, undefined, false)
 
 export const testFunction = async () => {
 
