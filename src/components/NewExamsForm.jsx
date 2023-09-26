@@ -51,15 +51,15 @@ export default function ExamsPanel({ exam, onChange }) {
       <SpaceBetween size="l">
         <FormField
           label="Exam prefix"
-          description="Enter the prefix that will be used to identify this exam."
+          description="Enter the prefix that will be used to identify this exam. The name has to start with a letter and can only contain A-Z, a-z, 0-9, '-' and '_'."
           errorText={exam.prefix.error}
           i18nStrings={{ errorIconAriaLabel: 'Error' }}
         >
           <Input
             value={exam.prefix.value}
             ariaRequired={true}
-            placeholder="27-01-2023-exam1"
-            onChange={({ detail: { value } }) => onChange('prefix', value.replace(" ", "_"))}
+            placeholder="exam1_27-01-2023"
+            onChange={({ detail: { value } }) => onChange('prefix', value.replace(/^[^a-zA-Z]*/, '').replace(" ", "_").replace(/[^a-zA-Z0-9-_]/g, "-"))}
           />
         </FormField>
         <FormField
