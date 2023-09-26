@@ -14,7 +14,7 @@ function ServiceNavigation(props) {
   );
 }
 
-const internal_pages_if_localhost = window.location.href.includes("http://localhost") ? [
+const internal_pages_if_localhost = window.location.href.includes("://localhost") ? [
   { type: 'link', text: 'Tests page', href: 'test' },
 ] : []
 
