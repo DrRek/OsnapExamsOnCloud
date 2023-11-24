@@ -274,7 +274,7 @@ export const create_budget_alert = async (resourceGroupName, location = "westeur
     }
   })
 
-export const change_vm_passwords = async (resourceGroupName, adminPw, studentPw, storageContainerName="test", storageContainerToken="sv=2015-04-05&sr=c&spr=https&se=2023-10-31T00%3A00%3A00.0000000Z&sp=racwdl&sig=PgrbvkWLWLoFh55nuxW%2BnSM2LiIfRfT%2Fwe7DPkKN6vA%3D") => {
+export const change_vm_passwords = async (resourceGroupName, adminPw, studentPw, storageContainerName="testcontainername", storageContainerToken="expiredkeytoreplace") => {
   const resp = await make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Compute/virtualMachines/customVirtualMachine/runCommand`, "2019-03-01", "POST", {
     commandId: "RunPowerShellScript",
     script: [
@@ -458,7 +458,7 @@ export const create_storage_container = async (name) => {
 export const create_storage_container_sas = async (name) => 
   make_api_call(`resourceGroups/Managment-ExamsOnTheCloud/providers/Microsoft.Storage/storageAccounts/osnapdbexamsonthecloud/listServiceSas`, "2023-01-01", "POST", {
     canonicalizedResource: `/blob/osnapdbexamsonthecloud/${name}`,
-    signedExpiry: "2023-10-31T00:00:00.0000000Z",
+    signedExpiry: moment().add(120, 'days').toISOString(),
     signedPermission: "racwdl",
     signedProtocol: "https",
     signedResource: "c"
@@ -467,9 +467,6 @@ export const create_storage_container_sas = async (name) =>
 export const testFunction = async () => {
 
 }
-
-
-
 
 const DB_NAME = "exams"
 
