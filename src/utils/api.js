@@ -3,6 +3,10 @@ import { dbTokenRequest, loginRequest, tokenRequest } from './authConfig';
 import { APP_PREFIX, E_CREATE_USER_REQ, E_LOGS, E_STATUS_VALUES, SUB_ID } from './constants';
 import moment from 'moment';
 
+async function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 const get_token = async (tokenType) => {
   const tokens = await getTokenPopup(tokenType);
   if (tokens === undefined) {
@@ -33,6 +37,13 @@ export const make_api_call = async (api, version, method = "GET", data = null, o
   var graphEndpoint = `https://management.azure.com/subscriptions/${SUB_ID}/${api}?api-version=${version}${other_params}`
 
   const response = await fetch(graphEndpoint, options)
+
+  if([429].includes(response.status)){
+    console.log("Hitted some throttling, resting for 3 seconds")
+    await sleep(3000)
+    return make_api_call(api, version, method, data, other_params, tokenType, return_all_response)
+  }
+
   /** 
    * TODO: I could return the header if the response is 202
   */
@@ -119,10 +130,6 @@ export const create_public_ip_address = async (resourceGroupName, location = "we
 
 const get_public_ip_address = async (resourceGroupName) =>
   make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Network/publicIPAddresses/customPublicIP`, "2022-07-01")
-
-async function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 export const wait_for_ip_address = async (resourceGroupName) => {
   while (true) {
