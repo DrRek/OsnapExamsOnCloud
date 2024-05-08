@@ -70,7 +70,7 @@ export default function AllExamsTable({ exams, selectedExams, onSelectionChange,
           title="All Exams"
           actionButtons={
             <SpaceBetween size="xs" direction="horizontal">
-              <Button loading={refreshing || deletingExamsFromDB} onClick={onRefresh}>Refresh</Button>
+              <Button loading={refreshing || deletingExamsFromDB} onClick={onRefresh} iconName="refresh" variant="icon">Refresh</Button>
               <Button disabled={selectedExams.length === 0} onClick={onShowDetails}>Show all logs</Button>
               {
                 window.location.href.includes("://localhost") && <Button disabled={selectedExams.length === 0} loading={deletingExamsFromDB} onClick={onDeleteExamsFromDB}>Delete from db</Button>

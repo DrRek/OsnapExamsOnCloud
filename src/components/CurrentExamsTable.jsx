@@ -173,7 +173,7 @@ export default function CurrentExamsTable({ exams, selectedExams, onSelectionCha
           title="Ongoing Exams"
           actionButtons={
             <SpaceBetween size="xs" direction="horizontal">
-              <Button disabled={refreshing} loading={refreshing} onClick={onRefresh}>Refresh</Button>
+              <Button disabled={refreshing} loading={refreshing} onClick={onRefresh} iconName="refresh" variant="icon">Refresh</Button>
               <Button disabled={selectedExams.length === 0 || stoppingexams} loading={turningOn} onClick={onTurnOn}>Turn on VM</Button>
               <Button disabled={selectedExams.length === 0 || stoppingexams} loading={turningOff} onClick={onTurnOff}>Turn off VM</Button>
               <Button variant="primary" onClick={() => history.push("/exams/new")}>Create exams</Button>
