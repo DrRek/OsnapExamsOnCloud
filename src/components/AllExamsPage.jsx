@@ -13,7 +13,8 @@ import DialogConfirmationDeleteFromDB from './DialogConfirmationDeleteFromDB.jsx
 import DialogExpandInfoExams from './DialogExpandInfoExams.jsx';
 import { downloadExamDesktop } from '../utils/storage.js'
 
-const CurrentExamsPage = ({ notifications }) => {
+const AllExamsPage = () => {
+  const [notifications, setNotifications] = useState([])
 
   const [exams, setExams] = useState([])
   const [selectedExams, setSelectedExams] = useState([])
@@ -54,7 +55,21 @@ const CurrentExamsPage = ({ notifications }) => {
       } else {
         const id = selectedExams[0]["id"]
         const containerName = selectedExams[0]["storage_container_name"]
-        downloadExamDesktop(id, containerName)
+        await downloadExamDesktop(id, containerName)
+      }
+    } catch (error) {
+      if (error.message.includes("The specified container does not exist.")) {
+        setNotifications([{
+          header: "Failed to download "+selectedExams[0]["id"]+" desktop",
+          type: "error",
+          content: "Perhaps it was deleted by azure? Try clickin on \"Student desktops backup\".",
+          dismissible: true,
+          dismissLabel: "Dismiss message",
+          onDismiss: () => setNotifications([]),
+          id: "message_1"
+        }])
+      } else {
+        throw error
       }
     } finally {
       setDownloadingDesktop(false)
@@ -118,4 +133,4 @@ const HelpOnSide = (
   </HelpPanel>
 );
 
-export default CurrentExamsPage
+export default AllExamsPage

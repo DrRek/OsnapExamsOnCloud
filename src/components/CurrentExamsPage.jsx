@@ -12,9 +12,10 @@ import { turn_off_virtual_machine, check_create_user_in_vm, check_resource_group
 import { E_CREATE_DOC_RESP, E_CREATE_USER_RESP, E_DELETE_RG_RESP, E_EMAIL, E_EXAM_DURATION, E_ID, E_LATEST_TURNOFF_RESP, E_LATEST_TURNON_RESP, E_SHARED_DOC_RESP, E_STATUS, E_STATUS_VALUES, E_USERPASS, E_USERUSER } from '../utils/constants.js';
 import DialogConfirmationEmail from './DialogConfirmationEmail.jsx';
 import DialogConfirmationDestroy from './DialogConfirmationDestroy.jsx';
+import { downloadExamDesktop } from '../utils/storage.js'
 
-const CurrentExamsPage = ({ notifications }) => {
-
+const CurrentExamsPage = () => {
+  const [notifications, setNotifications] = useState([])
   const [exams, setExams] = useState([])
   const [selectedExams, setSelectedExams] = useState([])
   const [refreshing, setRefreshing] = useState(true)
@@ -203,6 +204,36 @@ R.: <b>Cliccare su "Si".</b><br/>
   const [dialogConfirmationEmailOpen, setDialogConfirmationEmailOpen] = useState(false)
   const [dialogConfirmationDestroyOpen, setDialogConfirmationDestroyOpen] = useState(false)
 
+  const [dowloadingDesktop, setDownloadingDesktop] = useState(false)
+  const downloadDesktop = async () => {
+    setDownloadingDesktop(true)
+    try {
+      if (!selectedExams || selectedExams.length != 1) {
+        console.error("Trying to export desktop while selecting more than one exam")
+      } else {
+        const id = selectedExams[0]["id"]
+        const containerName = selectedExams[0]["storage_container_name"]
+        await downloadExamDesktop(id, containerName)
+      }
+    } catch (error) {
+      if (error.message.includes("The specified container does not exist.")) {
+        setNotifications([{
+          header: "Failed to download "+selectedExams[0]["id"]+" desktop",
+          type: "error",
+          content: "Perhaps it was deleted by azure? Try clickin on \"Student desktops backup\".",
+          dismissible: true,
+          dismissLabel: "Dismiss message",
+          onDismiss: () => setNotifications([]),
+          id: "message_1"
+        }])
+      } else {
+        throw error
+      }
+    } finally {
+      setDownloadingDesktop(false)
+    }
+  }
+
   return (
     <AppLayout
       content={
@@ -221,6 +252,8 @@ R.: <b>Cliccare su "Si".</b><br/>
             onTurnOn={turnOnVMs}
             turningOff={turningOff}
             turningOn={turningOn}
+            dowloadingDesktop={dowloadingDesktop}
+            downloadDesktop={downloadDesktop}
           />
           <DialogConfirmationEmail selectedExams={selectedExams} onClose={() => setDialogConfirmationEmailOpen(false)} onConfirm={() => { sendEmail(); setDialogConfirmationEmailOpen(false) }} visible={dialogConfirmationEmailOpen} />
           <DialogConfirmationDestroy selectedExams={selectedExams} onClose={() => setDialogConfirmationDestroyOpen(false)} onConfirm={() => { destroyExams(); setDialogConfirmationDestroyOpen(false) }} visible={dialogConfirmationDestroyOpen} />

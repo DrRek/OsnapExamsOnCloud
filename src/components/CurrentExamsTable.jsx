@@ -9,7 +9,6 @@ import Moment from 'react-moment';
 import { get_resource_group_link } from '../utils/api';
 import { saveAs } from 'file-saver';
 import { ErrorBoundary } from "react-error-boundary";
-import DownloadExamButton from './DownloadExamButton';
 
 const COLUMN_DEFINITIONS = addColumnSortLabels([
   {
@@ -139,7 +138,7 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
   }
 ]);
 
-export default function CurrentExamsTable({ exams, selectedExams, onSelectionChange, refreshing, onRefresh, onDestroyExams, onSendEmail, stoppingexams, sendingloginemail, onTurnOn, turningOn, onTurnOff, turningOff }) {
+export default function CurrentExamsTable({ exams, selectedExams, onSelectionChange, refreshing, onRefresh, onDestroyExams, onSendEmail, stoppingexams, sendingloginemail, onTurnOn, turningOn, onTurnOff, turningOff, downloadingDesktop, downloadDesktop }) {
   const { items, filteredItemsCount, collectionProps, filterProps, paginationProps } = useCollection(
     exams,
     {
@@ -174,14 +173,13 @@ export default function CurrentExamsTable({ exams, selectedExams, onSelectionCha
           actionButtons={
             <SpaceBetween size="xs" direction="horizontal">
               <Button disabled={refreshing} loading={refreshing} onClick={onRefresh} iconName="refresh" variant="icon">Refresh</Button>
-
               <ButtonDropdown
                 items={[
                   { text: "Turn on VM", id: "turnonvm", disabled: selectedExams.length === 0 || stoppingexams, loading: turningOn, disabledReason: "Select at least one valid exam" },
                   { text: "Turn off VM", id: "turnoffvm", disabled: selectedExams.length === 0 || stoppingexams, loading: turningOff, disabledReason: "Select at least one valid exam" },
                   { text: "Send Email", id: "sendemail", disabled: selectedExams.length === 0 || sendingloginemail, loading: sendingloginemail, disabledReason: "Select at least one valid exam" },
                   { text: "Destroy Exam VM", id: "destroyexamvm", disabled: selectedExams.length === 0 || stoppingexams, loading: stoppingexams, disabledReason: "Select at least one valid exam" },
-                  
+                  { text: "Download desktop in zip", id: "downloaddesktop", disabled: !selectedExams || selectedExams.length != 1, loading: downloadingDesktop, disabledReason: "Select one exam to export" },
                 ]}
                 onItemClick={({detail:{id}}) => {
                   if(id === "turnonvm")
@@ -192,14 +190,14 @@ export default function CurrentExamsTable({ exams, selectedExams, onSelectionCha
                     onSendEmail()
                   else if(id === "destroyexamvm")
                     onDestroyExams()
+                  else if(id === "downloaddesktop")
+                    downloadDesktop()
                   else
                     console.error("Unkwnown id "+id)
                 }}
               >
                 Actions
               </ButtonDropdown>
-
-              <DownloadExamButton exams={selectedExams}/>
               <Button variant="primary" onClick={() => history.push("/exams/new")}>Create exams</Button>
             </SpaceBetween>
           }
