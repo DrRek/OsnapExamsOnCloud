@@ -9,6 +9,7 @@ import Moment from 'react-moment';
 import { get_resource_group_link } from '../utils/api';
 import { saveAs } from 'file-saver';
 import { ErrorBoundary } from "react-error-boundary";
+import DownloadExamButton from './DownloadExamButton';
 
 const COLUMN_DEFINITIONS = addColumnSortLabels([
   {
@@ -177,6 +178,7 @@ export default function CurrentExamsTable({ exams, selectedExams, onSelectionCha
               <Button disabled={selectedExams.length === 0 || stoppingexams} loading={turningOff} onClick={onTurnOff}>Turn off VM</Button>
               <Button variant="primary" onClick={() => history.push("/exams/new")}>Create exams</Button>
               <Button disabled={selectedExams.length === 0 || sendingloginemail} loading={sendingloginemail} onClick={onSendEmail}>Send Email</Button>
+              <DownloadExamButton exams={selectedExams}/>
               <Button disabled={selectedExams.length === 0 || stoppingexams} loading={stoppingexams} onClick={onDestroyExams}>Destroy VM</Button>
             </SpaceBetween>
           }

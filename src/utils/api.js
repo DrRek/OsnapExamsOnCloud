@@ -17,7 +17,7 @@ const get_token = async (tokenType) => {
   return tokens
 }
 
-const get_jsonable_response = async (response, expect_json=false) => ({
+const get_jsonable_response = async (response, expect_json = false) => ({
   headers: [...response.headers.entries()],
   body: expect_json ? await response.json() : await response.text(),
   status: response.status
@@ -38,7 +38,7 @@ export const make_api_call = async (api, version, method = "GET", data = null, o
 
   const response = await fetch(graphEndpoint, options)
 
-  if([429].includes(response.status)){
+  if ([429].includes(response.status)) {
     console.log("Hitted some throttling, resting for 3 seconds")
     await sleep(3000)
     return make_api_call(api, version, method, data, other_params, tokenType, return_all_response)
@@ -50,14 +50,14 @@ export const make_api_call = async (api, version, method = "GET", data = null, o
   return return_all_response ?
     await get_jsonable_response(response) :
     (response.headers.get("content-length") !== 0 && [200, 201].includes(response.status) ? response.json() : null)
-} 
+}
 
 export const check_resource_group_existance = async name => {
   const resp = await make_api_call(`resourcegroups/${name}`, "2021-04-01", "HEAD", null, "", tokenRequest, true)
-  if(resp.status === 204){
+  if (resp.status === 204) {
     console.log("resource group exists")
     return true
-  } else if(resp.status === 404){
+  } else if (resp.status === 404) {
     console.log("resource group does not exists")
     return false
   } else {
@@ -281,14 +281,14 @@ export const create_budget_alert = async (resourceGroupName, location = "westeur
     }
   })
 
-export const change_vm_passwords = async (resourceGroupName, adminPw, studentPw, storageContainerName="testcontainername", storageContainerToken="expiredkeytoreplace") => {
+export const change_vm_passwords = async (resourceGroupName, adminPw, studentPw, storageContainerName = "testcontainername", storageContainerToken = "expiredkeytoreplace") => {
   const resp = await make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Compute/virtualMachines/customVirtualMachine/runCommand`, "2019-03-01", "POST", {
     commandId: "RunPowerShellScript",
     script: [
       `net user studente ${studentPw}`,
       `net user osnap ${adminPw}`,
       `cmd.exe /C 'C:\\Windows\\System32\\chcp.com 65001 & echo @echo off > C:\\Users\\studente\\azcopy_windows_amd64_10.20.1\\syncer.bat'`,
-      `cmd.exe /C 'C:\\Windows\\System32\\chcp.com 65001 & echo C:\\Users\\studente\\azcopy_windows_amd64_10.20.1\\azcopy.exe sync "C:\\Users\\studente\\Desktop" "https://osnapdbexamsonthecloud.blob.core.windows.net/${storageContainerName}?${storageContainerToken.replaceAll("%","%%")}" --delete-destination true >> C:\\Users\\studente\\azcopy_windows_amd64_10.20.1\\syncer.bat'`,
+      `cmd.exe /C 'C:\\Windows\\System32\\chcp.com 65001 & echo C:\\Users\\studente\\azcopy_windows_amd64_10.20.1\\azcopy.exe sync "C:\\Users\\studente\\Desktop" "https://osnapdbexamsonthecloud.blob.core.windows.net/${storageContainerName}?${storageContainerToken.replaceAll("%", "%%")}" --delete-destination true >> C:\\Users\\studente\\azcopy_windows_amd64_10.20.1\\syncer.bat'`,
       `cmd.exe /C 'C:\\Windows\\System32\\chcp.com 65001 & echo move nul 2^>^&0 >> C:\\Users\\studente\\azcopy_windows_amd64_10.20.1\\syncer.bat'`,
       `schtasks /create /sc minute /mo 1 /tn "SyncDesktopToContainer" /tr "cmd.exe /C start /min C:\\Users\\studente\\azcopy_windows_amd64_10.20.1\\syncer.bat & exit" /st 00:00 /F /IT /ru "studente"`
       //'$MACAddress = "00-0D-3A-2F-BA-E0"',
@@ -304,13 +304,13 @@ export const change_vm_passwords = async (resourceGroupName, adminPw, studentPw,
 }
 
 export const check_create_user_in_vm = async (exam) => {
-  try{
+  try {
     const headers = exam[E_CREATE_USER_REQ].headers
     const location_header = headers.find(i => i[0] === "location")
-    if(!location_header)
+    if (!location_header)
       return false
     const check_url = location_header[1]
-  
+
     const tokens = await get_token(tokenRequest)
     var options = {
       method: "GET",
@@ -318,12 +318,12 @@ export const check_create_user_in_vm = async (exam) => {
         'Authorization': "Bearer " + tokens.accessToken,
       },
     };
-  
+
     const response = await fetch(check_url, options)
-    return response.status === 202 ? 
+    return response.status === 202 ?
       false :
       await get_jsonable_response(response)
-  } catch (e){
+  } catch (e) {
     console.error("Error in check_create_user_in_VM")
     console.error(e)
     return false
@@ -420,7 +420,7 @@ export const grant_access_to_doc = async (name, email) => {
 
   const response = await fetch(graphEndpoint, options)
   return await get_jsonable_response(response, true)
-} 
+}
 
 export const remove_access_to_doc = async (name) => {
   const tokens = await get_token(loginRequest);
@@ -435,7 +435,7 @@ export const remove_access_to_doc = async (name) => {
 
   const response = await fetch(graphEndpoint, options)
   const jsonResponse = await response.json()
-  for(const invitations of jsonResponse["value"]){
+  for (const invitations of jsonResponse["value"]) {
     const options2 = {
       method: 'DELETE',
       headers: {
@@ -462,11 +462,21 @@ export const create_storage_container = async (name) => {
   return resp
 }
 
-export const create_storage_container_sas = async (name) => 
+export const create_storage_container_sas = async (name) =>
   make_api_call(`resourceGroups/Managment-ExamsOnTheCloud/providers/Microsoft.Storage/storageAccounts/osnapdbexamsonthecloud/listServiceSas`, "2023-01-01", "POST", {
     canonicalizedResource: `/blob/osnapdbexamsonthecloud/${name}`,
     signedExpiry: moment().add(120, 'days').toISOString(),
     signedPermission: "racwdl",
+    signedProtocol: "https",
+    signedResource: "c"
+  }, undefined, undefined, false)
+
+export const create_storage_container_download_sas = async (name) =>
+  make_api_call(`resourceGroups/Managment-ExamsOnTheCloud/providers/Microsoft.Storage/storageAccounts/osnapdbexamsonthecloud/listServiceSas`, "2023-01-01", "POST", {
+    canonicalizedResource: `/blob/osnapdbexamsonthecloud/${name}`,
+    signedStart: moment().subtract(1, 'days').toISOString(),
+    signedExpiry: moment().add(120, 'days').toISOString(),
+    signedPermission: "rl",
     signedProtocol: "https",
     signedResource: "c"
   }, undefined, undefined, false)
@@ -484,14 +494,14 @@ export const db_list_exams = async () => {
 
 export const db_is_prefix_unique = async (newID) => {
   const exams = await db_list_exams()
-  return !exams.some(({id}) => id.startsWith(newID))
+  return !exams.some(({ id }) => id.startsWith(newID))
 }
 
 export const db_update_exam = (exam, reason) => {
-  console.log("db_update_exam for reason: "+reason)
+  console.log("db_update_exam for reason: " + reason)
   console.log(exam)
   exam[E_LOGS].push({
-    "timestamp": Date.now()/1000,
+    "timestamp": Date.now() / 1000,
     "reason": reason
   })
   const raw_exams = JSON.parse(localStorage.getItem(DB_NAME) || "{}")
@@ -591,11 +601,11 @@ export const db_is_prefix_unique_v2 = async (newID) => {
 }
 
 export const db_update_exam_v2 = async (exam, reason) => {
-  console.log("db_update_exam_v2 for reason: "+reason)
+  console.log("db_update_exam_v2 for reason: " + reason)
   const tokens = await get_token(dbTokenRequest)
 
   exam[E_LOGS].push({
-    "timestamp": Date.now()/1000,
+    "timestamp": Date.now() / 1000,
     "reason": reason
   })
 
