@@ -11,6 +11,7 @@ import AllExamsTable from './AllExamsTable.jsx';
 import { db_delete_exam_v2, db_list_exams_v2 } from '../utils/api.js';
 import DialogConfirmationDeleteFromDB from './DialogConfirmationDeleteFromDB.jsx';
 import DialogExpandInfoExams from './DialogExpandInfoExams.jsx';
+import { downloadExamDesktop } from '../utils/storage.js'
 
 const CurrentExamsPage = ({ notifications }) => {
 
@@ -44,6 +45,22 @@ const CurrentExamsPage = ({ notifications }) => {
     refreshExams()
   }
 
+  const [dowloadingDesktop, setDownloadingDesktop] = useState(false)
+  const downloadDesktop = async () => {
+    setDownloadingDesktop(true)
+    try{
+      if(!selectedExams || selectedExams.length != 1){
+        console.error("Trying to export desktop while selecting more than one exam")
+      } else {
+        const id = selectedExams[0]["id"]
+        const containerName = selectedExams[0]["storage_container_name"]
+        downloadExamDesktop(id, containerName)
+      }
+    } finally {
+      setDownloadingDesktop(false)
+    }
+  }
+
   return (
     <AppLayout
       content={
@@ -57,6 +74,8 @@ const CurrentExamsPage = ({ notifications }) => {
             onShowDetails={() => setDialogExandInfoExams(true)}
             onDeleteExamsFromDB={() => setDialogConfirmationDeleteFromDBOpen(true)}
             deletingExamsFromDB={dialogConfirmationDeleteFromDBOpen || deletingExams}
+            dowloadingDesktop={dowloadingDesktop}
+            downloadDesktop={downloadDesktop}
           />
           <DialogConfirmationDeleteFromDB selectedExams={selectedExams} onClose={() => setDialogConfirmationDeleteFromDBOpen(false)} onConfirm={() => { deleteExamsFromDB(); setDialogConfirmationDeleteFromDBOpen(false) }} visible={dialogConfirmationDeleteFromDBOpen} />
           <DialogExpandInfoExams exams={selectedExams} onClose={() => setDialogExandInfoExams(false)} visible={dialogExandInfoExams} />

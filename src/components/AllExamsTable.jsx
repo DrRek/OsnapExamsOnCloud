@@ -38,7 +38,7 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
   }
 ]);
 
-export default function AllExamsTable({ exams, selectedExams, onSelectionChange, refreshing, onRefresh, onDeleteExamsFromDB, onShowDetails, deletingExamsFromDB }) {
+export default function AllExamsTable({ exams, selectedExams, onSelectionChange, refreshing, onRefresh, onDeleteExamsFromDB, onShowDetails, deletingExamsFromDB, downloadingDesktop, downloadDesktop }) {
   const { items, filteredItemsCount, collectionProps, filterProps, paginationProps } = useCollection(
     exams,
     {
@@ -79,6 +79,7 @@ export default function AllExamsTable({ exams, selectedExams, onSelectionChange,
               <ButtonDropdown
                 items={[
                   { text: "Show all logs", id: "showalllogs", disabled: selectedExams.length === 0, disabledReason: "Select at least one exam" },
+                  { text: "Download desktop in zip", id: "downloaddesktop", disabled: !selectedExams || selectedExams.length != 1, loading: downloadingDesktop, disabledReason: "Select one exam to export" },
                   ...onlyLocalhostActions
                 ]}
                 onItemClick={({detail:{id}}) => {
@@ -86,6 +87,8 @@ export default function AllExamsTable({ exams, selectedExams, onSelectionChange,
                     onShowDetails()
                   else if(id === "deletefromdb")
                     onDeleteExamsFromDB()
+                  else if(id === "downloaddesktop")
+                    downloadDesktop()
                   else
                     console.error("Unkwnown id "+id)
                 }}

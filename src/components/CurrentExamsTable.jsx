@@ -1,6 +1,6 @@
 import React from 'react';
 import { useCollection } from '@cloudscape-design/collection-hooks';
-import { Button, Pagination, Table, TextFilter, SpaceBetween, Link, StatusIndicator, Spinner, Box, Popover } from '@cloudscape-design/components';
+import { Button, Pagination, Table, TextFilter, SpaceBetween, Link, StatusIndicator, Spinner, Box, Popover, ButtonDropdown } from '@cloudscape-design/components';
 import { paginationLabels, examsSelectionLabels, addColumnSortLabels, getFilterCounterText } from '../tables/labels';
 import { TableHeader } from './TableHeader';
 import { useHistory } from 'react-router-dom';
@@ -174,11 +174,32 @@ export default function CurrentExamsTable({ exams, selectedExams, onSelectionCha
           actionButtons={
             <SpaceBetween size="xs" direction="horizontal">
               <Button disabled={refreshing} loading={refreshing} onClick={onRefresh} iconName="refresh" variant="icon">Refresh</Button>
-              <Button disabled={selectedExams.length === 0 || stoppingexams} loading={turningOn} onClick={onTurnOn}>Turn on VM</Button>
-              <Button disabled={selectedExams.length === 0 || stoppingexams} loading={turningOff} onClick={onTurnOff}>Turn off VM</Button>
-              <Button disabled={selectedExams.length === 0 || sendingloginemail} loading={sendingloginemail} onClick={onSendEmail}>Send Email</Button>
+
+              <ButtonDropdown
+                items={[
+                  { text: "Turn on VM", id: "turnonvm", disabled: selectedExams.length === 0 || stoppingexams, loading: turningOn, disabledReason: "Select at least one valid exam" },
+                  { text: "Turn off VM", id: "turnoffvm", disabled: selectedExams.length === 0 || stoppingexams, loading: turningOff, disabledReason: "Select at least one valid exam" },
+                  { text: "Send Email", id: "sendemail", disabled: selectedExams.length === 0 || sendingloginemail, loading: sendingloginemail, disabledReason: "Select at least one valid exam" },
+                  { text: "Destroy Exam VM", id: "destroyexamvm", disabled: selectedExams.length === 0 || stoppingexams, loading: stoppingexams, disabledReason: "Select at least one valid exam" },
+                  
+                ]}
+                onItemClick={({detail:{id}}) => {
+                  if(id === "turnonvm")
+                    onTurnOn()
+                  else if(id === "turnoffvm")
+                    onTurnOff()
+                  else if(id === "sendemail")
+                    onSendEmail()
+                  else if(id === "destroyexamvm")
+                    onDestroyExams()
+                  else
+                    console.error("Unkwnown id "+id)
+                }}
+              >
+                Actions
+              </ButtonDropdown>
+
               <DownloadExamButton exams={selectedExams}/>
-              <Button disabled={selectedExams.length === 0 || stoppingexams} loading={stoppingexams} onClick={onDestroyExams}>Destroy VM</Button>
               <Button variant="primary" onClick={() => history.push("/exams/new")}>Create exams</Button>
             </SpaceBetween>
           }
