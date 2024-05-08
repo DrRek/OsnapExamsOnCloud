@@ -176,10 +176,10 @@ export default function CurrentExamsTable({ exams, selectedExams, onSelectionCha
               <Button disabled={refreshing} loading={refreshing} onClick={onRefresh} iconName="refresh" variant="icon">Refresh</Button>
               <Button disabled={selectedExams.length === 0 || stoppingexams} loading={turningOn} onClick={onTurnOn}>Turn on VM</Button>
               <Button disabled={selectedExams.length === 0 || stoppingexams} loading={turningOff} onClick={onTurnOff}>Turn off VM</Button>
-              <Button variant="primary" onClick={() => history.push("/exams/new")}>Create exams</Button>
               <Button disabled={selectedExams.length === 0 || sendingloginemail} loading={sendingloginemail} onClick={onSendEmail}>Send Email</Button>
               <DownloadExamButton exams={selectedExams}/>
               <Button disabled={selectedExams.length === 0 || stoppingexams} loading={stoppingexams} onClick={onDestroyExams}>Destroy VM</Button>
+              <Button variant="primary" onClick={() => history.push("/exams/new")}>Create exams</Button>
             </SpaceBetween>
           }
           totalItems={exams}

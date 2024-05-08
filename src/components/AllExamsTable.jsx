@@ -1,6 +1,6 @@
 import React from 'react';
 import { useCollection } from '@cloudscape-design/collection-hooks';
-import { Button, Pagination, Table, TextFilter, SpaceBetween, Spinner } from '@cloudscape-design/components';
+import { Button, Pagination, Table, TextFilter, SpaceBetween, Spinner, ButtonDropdown } from '@cloudscape-design/components';
 import { paginationLabels, examsSelectionLabels, addColumnSortLabels, getFilterCounterText } from '../tables/labels';
 import { TableHeader } from './TableHeader';
 import { E_EMAIL, E_ID, E_LOGS } from '../utils/constants';
@@ -23,9 +23,9 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
   },
   {
     id: 'timestamp',
-    cell: item => 
-      <Moment date={new Date(item[E_LOGS][0]["timestamp"]*1000)} format="HH:mm DD/MM/YY"></Moment>,
-    sortingComparator: (a,b) => 
+    cell: item =>
+      <Moment date={new Date(item[E_LOGS][0]["timestamp"] * 1000)} format="HH:mm DD/MM/YY"></Moment>,
+    sortingComparator: (a, b) =>
       a[E_LOGS][0]["timestamp"] < b[E_LOGS][0]["timestamp"],
     header: 'Start time',
     minWidth: 160,
@@ -33,7 +33,7 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
   {
     id: 'latest log',
     header: 'Latest log',
-    cell: item => item[E_LOGS][item[E_LOGS].length-1]["reason"],
+    cell: item => item[E_LOGS][item[E_LOGS].length - 1]["reason"],
     minWidth: 100,
   }
 ]);
@@ -43,7 +43,7 @@ export default function AllExamsTable({ exams, selectedExams, onSelectionChange,
     exams,
     {
       filtering: {
-        empty: refreshing ? <Spinner/> : <div>no exams</div>,
+        empty: refreshing ? <Spinner /> : <div>no exams</div>,
         noMatch: <div>no matching exams</div>,
       },
       pagination: { pageSize: 50 },
@@ -51,6 +51,11 @@ export default function AllExamsTable({ exams, selectedExams, onSelectionChange,
       selection: {},
     }
   );
+
+  const onlyLocalhostActions = window.location.href.includes("://localhost") ?
+    [
+      { text: "Delete from db", id: "deletefromdb", disabled: selectedExams.length === 0, disabledReason: "Select at least one exam", loading: deletingExamsFromDB }
+    ] : []
 
   return (
     <Table
@@ -71,10 +76,22 @@ export default function AllExamsTable({ exams, selectedExams, onSelectionChange,
           actionButtons={
             <SpaceBetween size="xs" direction="horizontal">
               <Button loading={refreshing || deletingExamsFromDB} onClick={onRefresh} iconName="refresh" variant="icon">Refresh</Button>
-              <Button disabled={selectedExams.length === 0} onClick={onShowDetails}>Show all logs</Button>
-              {
-                window.location.href.includes("://localhost") && <Button disabled={selectedExams.length === 0} loading={deletingExamsFromDB} onClick={onDeleteExamsFromDB}>Delete from db</Button>
-              }
+              <ButtonDropdown
+                items={[
+                  { text: "Show all logs", id: "showalllogs", disabled: selectedExams.length === 0, disabledReason: "Select at least one exam" },
+                  ...onlyLocalhostActions
+                ]}
+                onItemClick={({detail:{id}}) => {
+                  if(id === "showalllogs")
+                    onShowDetails()
+                  else if(id === "deletefromdb")
+                    onDeleteExamsFromDB()
+                  else
+                    console.error("Unkwnown id "+id)
+                }}
+              >
+                Actions
+              </ButtonDropdown>
             </SpaceBetween>
           }
           totalItems={exams}
