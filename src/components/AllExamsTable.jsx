@@ -72,7 +72,9 @@ export default function AllExamsTable({ exams, selectedExams, onSelectionChange,
             <SpaceBetween size="xs" direction="horizontal">
               <Button loading={refreshing || deletingExamsFromDB} onClick={onRefresh}>Refresh</Button>
               <Button disabled={selectedExams.length === 0} onClick={onShowDetails}>Show all logs</Button>
-              <Button disabled={selectedExams.length === 0} loading={deletingExamsFromDB} onClick={onDeleteExamsFromDB}>Delete from db</Button>
+              {
+                window.location.href.includes("://localhost") && <Button disabled={selectedExams.length === 0} loading={deletingExamsFromDB} onClick={onDeleteExamsFromDB}>Delete from db</Button>
+              }
             </SpaceBetween>
           }
           totalItems={exams}

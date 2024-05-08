@@ -574,10 +574,12 @@ export const db_list_active_exams_v2 = async () => {
   }
 
   //boundary date set to 7 days ago
-  const boundary_date = new Date();
-  boundary_date.setDate(boundary_date.getDate() - 7);
+  //const boundary_date = new Date();
+  //boundary_date.setDate(boundary_date.getDate() - 7);
 
-  const resp = await fetch(`${DB_URL}()?$filter=Timestamp ge datetime'${boundary_date.toISOString()}' or status ne '${E_STATUS_VALUES.DESTROYED}'`, options)
+  // I used to display also recently destroyed exams in the Ongoing exams, this has changed
+  //const resp = await fetch(`${DB_URL}()?$filter=Timestamp ge datetime'${boundary_date.toISOString()}' or status ne '${E_STATUS_VALUES.DESTROYED}'`, options)
+  const resp = await fetch(`${DB_URL}()?$filter=status ne '${E_STATUS_VALUES.DESTROYED}'`, options)
   return (await resp.json()).value.map(i => db_util_json_to_obj(i))
 }
 
