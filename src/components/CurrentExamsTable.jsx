@@ -138,7 +138,7 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
   }
 ]);
 
-export default function CurrentExamsTable({ exams, selectedExams, onSelectionChange, refreshing, onRefresh, onDestroyExams, onSendEmail, stoppingexams, sendingloginemail, onTurnOn, turningOn, onTurnOff, turningOff, downloadingDesktop, downloadDesktop }) {
+export default function CurrentExamsTable({ exams, selectedExams, onSelectionChange, refreshing, onRefresh, onDestroyExams, onSendEmail, stoppingexams, sendingloginemail, onTurnOn, turningOn, onTurnOff, turningOff, downloadDesktop }) {
   const { items, filteredItemsCount, collectionProps, filterProps, paginationProps } = useCollection(
     exams,
     {
@@ -179,7 +179,7 @@ export default function CurrentExamsTable({ exams, selectedExams, onSelectionCha
                   { text: "Turn off VM", id: "turnoffvm", disabled: selectedExams.length === 0 || stoppingexams, loading: turningOff, disabledReason: "Select at least one valid exam" },
                   { text: "Send Email", id: "sendemail", disabled: selectedExams.length === 0 || sendingloginemail, loading: sendingloginemail, disabledReason: "Select at least one valid exam" },
                   { text: "Destroy Exam VM", id: "destroyexamvm", disabled: selectedExams.length === 0 || stoppingexams, loading: stoppingexams, disabledReason: "Select at least one valid exam" },
-                  { text: "Download desktop in zip", id: "downloaddesktop", disabled: !selectedExams || selectedExams.length != 1, loading: downloadingDesktop, disabledReason: "Select one exam to export" },
+                  { text: "Download desktop in zip", id: "downloaddesktop", disabled: !selectedExams || selectedExams.length != 1, loading: false, disabledReason: "Select one exam to export" },
                 ]}
                 onItemClick={({detail:{id}}) => {
                   if(id === "turnonvm")

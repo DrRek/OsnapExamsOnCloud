@@ -1,20 +1,20 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react'
 import {
   AppLayout,
   BreadcrumbGroup,
   Flashbar,
-  HelpPanel
-} from '@cloudscape-design/components';
-import ServiceNavigation from './ServiceNavigation.jsx';
-import { appLayoutLabels } from '../tables/labels';
-import AllExamsTable from './AllExamsTable.jsx';
-import { db_delete_exam_v2, db_list_exams_v2 } from '../utils/api.js';
-import DialogConfirmationDeleteFromDB from './DialogConfirmationDeleteFromDB.jsx';
-import DialogExpandInfoExams from './DialogExpandInfoExams.jsx';
+  HelpPanel,
+} from '@cloudscape-design/components'
+import ServiceNavigation from './ServiceNavigation.jsx'
+import { appLayoutLabels } from '../tables/labels'
+import AllExamsTable from './AllExamsTable.jsx'
+import { db_delete_exam_v2, db_list_exams_v2 } from '../utils/api.js'
+import DialogConfirmationDeleteFromDB from './DialogConfirmationDeleteFromDB.jsx'
+import DialogExpandInfoExams from './DialogExpandInfoExams.jsx'
 import { downloadExamDesktop } from '../utils/storage.js'
 
 const AllExamsPage = () => {
-  const [notifications, setNotifications] = useState([])
+  const [notifications, setNotifications] = useState({})
 
   const [exams, setExams] = useState([])
   const [selectedExams, setSelectedExams] = useState([])
@@ -31,48 +31,92 @@ const AllExamsPage = () => {
     refreshExams()
   }, [])
 
-  const [dialogConfirmationDeleteFromDBOpen, setDialogConfirmationDeleteFromDBOpen] = useState(false)
+  const [
+    dialogConfirmationDeleteFromDBOpen,
+    setDialogConfirmationDeleteFromDBOpen,
+  ] = useState(false)
   const [dialogExandInfoExams, setDialogExandInfoExams] = useState(false)
 
   const [deletingExams, setDeletingExams] = useState(false)
   const deleteExamsFromDB = async () => {
     setDeletingExams(true)
-    try{
-      for(const exam of selectedExams)
-        await db_delete_exam_v2(exam)
+    try {
+      for (const exam of selectedExams) await db_delete_exam_v2(exam)
     } finally {
       setDeletingExams(false)
     }
     refreshExams()
   }
 
-  const [dowloadingDesktop, setDownloadingDesktop] = useState(false)
-  const downloadDesktop = async () => {
-    setDownloadingDesktop(true)
-    try{
-      if(!selectedExams || selectedExams.length != 1){
-        console.error("Trying to export desktop while selecting more than one exam")
+  const advancedSetNotification = (notification, forceAdd = false) => {
+    setNotifications((prev) => {
+      if (forceAdd || prev[notification.id]) {
+        return {
+          ...prev,
+          [notification.id]: {
+            ...(prev[notification.id] || {}),
+            ...notification,
+          },
+        }
       } else {
-        const id = selectedExams[0]["id"]
-        const containerName = selectedExams[0]["storage_container_name"]
+        return prev
+      }
+    })
+  }
+
+  const downloadDesktop = async () => {
+    const key = Math.floor(Math.random() * 10000) //this is just used as random key on the frontend
+    advancedSetNotification(
+      {
+        header: 'Download ' + selectedExams[0]['id'] + ' resources',
+        type: 'info',
+        content: 'Ongoing download from Azure backup repository',
+        dismissible: true,
+        dismissLabel: 'Dismiss message',
+        onDismiss: () => setNotifications((prev) => ({ ...prev, [key]: null })),
+        id: key,
+      },
+      true
+    )
+    try {
+      if (!selectedExams || selectedExams.length != 1) {
+        console.error(
+          'Trying to export desktop while selecting more than one exam'
+        )
+      } else {
+        const id = selectedExams[0]['id']
+        const containerName = selectedExams[0]['storage_container_name']
         await downloadExamDesktop(id, containerName)
       }
+      advancedSetNotification({
+        type: 'success',
+        content: 'Resources downloaded',
+        id: key,
+      })
     } catch (error) {
-      if (error.message.includes("The specified container does not exist.")) {
-        setNotifications([{
-          header: "Failed to download "+selectedExams[0]["id"]+" desktop",
-          type: "error",
-          content: "Perhaps it was deleted by azure? Try clickin on \"Student desktops backup\".",
-          dismissible: true,
-          dismissLabel: "Dismiss message",
-          onDismiss: () => setNotifications([]),
-          id: "message_1"
-        }])
+      if (
+        error.message.includes('The specified container does not exist.') ||
+        error.message.includes('No files to dowload')
+      ) {
+        advancedSetNotification(
+          {
+            type: 'error',
+            content: 'Error: ' + error.message,
+            id: key,
+          },
+          true
+        )
       } else {
+        advancedSetNotification(
+          {
+            type: 'error',
+            content: 'Unknown Error: ' + error,
+            id: key,
+          },
+          true
+        )
         throw error
       }
-    } finally {
-      setDownloadingDesktop(false)
     }
   }
 
@@ -83,38 +127,58 @@ const AllExamsPage = () => {
           <AllExamsTable
             exams={exams}
             selectedExams={selectedExams}
-            onSelectionChange={event => setSelectedExams(event.detail.selectedItems)}
+            onSelectionChange={(event) =>
+              setSelectedExams(event.detail.selectedItems)
+            }
             refreshing={refreshing}
             onRefresh={refreshExams}
             onShowDetails={() => setDialogExandInfoExams(true)}
-            onDeleteExamsFromDB={() => setDialogConfirmationDeleteFromDBOpen(true)}
-            deletingExamsFromDB={dialogConfirmationDeleteFromDBOpen || deletingExams}
-            dowloadingDesktop={dowloadingDesktop}
+            onDeleteExamsFromDB={() =>
+              setDialogConfirmationDeleteFromDBOpen(true)
+            }
+            deletingExamsFromDB={
+              dialogConfirmationDeleteFromDBOpen || deletingExams
+            }
             downloadDesktop={downloadDesktop}
           />
-          <DialogConfirmationDeleteFromDB selectedExams={selectedExams} onClose={() => setDialogConfirmationDeleteFromDBOpen(false)} onConfirm={() => { deleteExamsFromDB(); setDialogConfirmationDeleteFromDBOpen(false) }} visible={dialogConfirmationDeleteFromDBOpen} />
-          <DialogExpandInfoExams exams={selectedExams} onClose={() => setDialogExandInfoExams(false)} visible={dialogExandInfoExams} />
+          <DialogConfirmationDeleteFromDB
+            selectedExams={selectedExams}
+            onClose={() => setDialogConfirmationDeleteFromDBOpen(false)}
+            onConfirm={() => {
+              deleteExamsFromDB()
+              setDialogConfirmationDeleteFromDBOpen(false)
+            }}
+            visible={dialogConfirmationDeleteFromDBOpen}
+          />
+          <DialogExpandInfoExams
+            exams={selectedExams}
+            onClose={() => setDialogExandInfoExams(false)}
+            visible={dialogExandInfoExams}
+          />
         </>
-
       }
       headerSelector="#header"
       breadcrumbs={
         <BreadcrumbGroup
-          items={[
-            { text: 'ExamsOnTheCloud', href: '/' }
-          ]}
+          items={[{ text: 'ExamsOnTheCloud', href: '/' }]}
           expandAriaLabel="Show path"
           ariaLabel="Breadcrumbs"
         />
       }
-      notifications={<Flashbar items={notifications} />}
+      notifications={
+        <Flashbar
+          items={Object.keys(notifications)
+            .filter((key) => notifications[key])
+            .map((key) => notifications[key])}
+        />
+      }
       navigation={<ServiceNavigation />}
       //navigationOpen={false}
       ariaLabels={appLayoutLabels}
       contentType="table"
       tools={HelpOnSide}
     />
-  );
+  )
 }
 
 const HelpOnSide = (
@@ -128,9 +192,12 @@ const HelpOnSide = (
   >
     <div>
       <h4>All Exams</h4>
-      <p>In this page it is possible to see all the past and previous exams. Mainly used for log and debug purpose.</p>
+      <p>
+        In this page it is possible to see all the past and previous exams.
+        Mainly used for log and debug purpose.
+      </p>
     </div>
   </HelpPanel>
-);
+)
 
 export default AllExamsPage

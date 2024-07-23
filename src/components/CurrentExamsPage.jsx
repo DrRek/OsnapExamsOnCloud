@@ -1,21 +1,47 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react'
 import {
   AppLayout,
   BreadcrumbGroup,
   Flashbar,
-  HelpPanel
-} from '@cloudscape-design/components';
-import ServiceNavigation from './ServiceNavigation.jsx';
-import { appLayoutLabels } from '../tables/labels';
-import CurrentExamsTable from './CurrentExamsTable.jsx';
-import { turn_off_virtual_machine, check_create_user_in_vm, check_resource_group_existance, db_list_active_exams_v2, db_update_exam_v2, delete_resource_group, grant_access_to_doc, remove_access_to_doc, send_email, turn_on_virtual_machine, check_virtual_machine } from '../utils/api.js';
-import { E_CREATE_DOC_RESP, E_CREATE_USER_RESP, E_DELETE_RG_RESP, E_EMAIL, E_EXAM_DURATION, E_ID, E_LATEST_TURNOFF_RESP, E_LATEST_TURNON_RESP, E_SHARED_DOC_RESP, E_STATUS, E_STATUS_VALUES, E_USERPASS, E_USERUSER } from '../utils/constants.js';
-import DialogConfirmationEmail from './DialogConfirmationEmail.jsx';
-import DialogConfirmationDestroy from './DialogConfirmationDestroy.jsx';
+  HelpPanel,
+} from '@cloudscape-design/components'
+import ServiceNavigation from './ServiceNavigation.jsx'
+import { appLayoutLabels } from '../tables/labels'
+import CurrentExamsTable from './CurrentExamsTable.jsx'
+import {
+  turn_off_virtual_machine,
+  check_create_user_in_vm,
+  check_resource_group_existance,
+  db_list_active_exams_v2,
+  db_update_exam_v2,
+  delete_resource_group,
+  grant_access_to_doc,
+  remove_access_to_doc,
+  send_email,
+  turn_on_virtual_machine,
+  check_virtual_machine,
+} from '../utils/api.js'
+import {
+  E_CREATE_DOC_RESP,
+  E_CREATE_USER_RESP,
+  E_DELETE_RG_RESP,
+  E_EMAIL,
+  E_EXAM_DURATION,
+  E_ID,
+  E_LATEST_TURNOFF_RESP,
+  E_LATEST_TURNON_RESP,
+  E_SHARED_DOC_RESP,
+  E_STATUS,
+  E_STATUS_VALUES,
+  E_USERPASS,
+  E_USERUSER,
+} from '../utils/constants.js'
+import DialogConfirmationEmail from './DialogConfirmationEmail.jsx'
+import DialogConfirmationDestroy from './DialogConfirmationDestroy.jsx'
 import { downloadExamDesktop } from '../utils/storage.js'
 
 const CurrentExamsPage = () => {
-  const [notifications, setNotifications] = useState([])
+  const [notifications, setNotifications] = useState({})
   const [exams, setExams] = useState([])
   const [selectedExams, setSelectedExams] = useState([])
   const [refreshing, setRefreshing] = useState(true)
@@ -24,12 +50,12 @@ const CurrentExamsPage = () => {
     setRefreshing(true)
     setSelectedExams([])
     const temp_exams = await db_list_active_exams_v2()
-    console.log("starting refresh")
+    console.log('starting refresh')
     console.log(temp_exams[0])
 
     for (const exam of temp_exams) {
-
-      if (exam[E_STATUS] === E_STATUS_VALUES.CREATING) { // what to do if exam is being created
+      if (exam[E_STATUS] === E_STATUS_VALUES.CREATING) {
+        // what to do if exam is being created
         //check that Resource Group exists
         const rg_exists = await check_resource_group_existance(exam[E_ID])
 
@@ -42,49 +68,90 @@ const CurrentExamsPage = () => {
         console.log(`check_user_resp ${check_user_resp}`)
         if (rg_exists && check_user_resp) {
           exam[E_STATUS] = E_STATUS_VALUES.RUNNING
-          await db_update_exam_v2(exam, "from creating to running")
+          await db_update_exam_v2(exam, 'from creating to running')
         }
-      } else if (exam[E_STATUS] === E_STATUS_VALUES.DESTROYING) { // what to do if exam is being stopped
+      } else if (exam[E_STATUS] === E_STATUS_VALUES.DESTROYING) {
+        // what to do if exam is being stopped
         //check that RG does not exist
         const rg_exists = await check_resource_group_existance(exam[E_ID])
 
         //if these checks are sucessfull move the status to DESTROYED
-        if (!rg_exists)
-          exam[E_STATUS] = E_STATUS_VALUES.DESTROYED
-        await db_update_exam_v2(exam, "from stopping to stopped")
-      } else if ([E_STATUS_VALUES.TURNINGON, E_STATUS_VALUES.TURNINGOFF, E_STATUS_VALUES.RUNNING, E_STATUS_VALUES.TURNEDOFF].includes(exam[E_STATUS])) {
+        if (!rg_exists) exam[E_STATUS] = E_STATUS_VALUES.DESTROYED
+        await db_update_exam_v2(exam, 'from stopping to stopped')
+      } else if (
+        [
+          E_STATUS_VALUES.TURNINGON,
+          E_STATUS_VALUES.TURNINGOFF,
+          E_STATUS_VALUES.RUNNING,
+          E_STATUS_VALUES.TURNEDOFF,
+        ].includes(exam[E_STATUS])
+      ) {
         try {
           const vmRawStatus = await check_virtual_machine(exam[E_ID])
 
-          const vmStatus = vmRawStatus.statuses.find(i => i.code.startsWith("PowerState/")).code
+          const vmStatus = vmRawStatus.statuses.find((i) =>
+            i.code.startsWith('PowerState/')
+          ).code
 
           const prevStatus = exam[E_STATUS]
-          if (vmStatus === "PowerState/running" && exam[E_STATUS] !== E_STATUS_VALUES.RUNNING) {
+          if (
+            vmStatus === 'PowerState/running' &&
+            exam[E_STATUS] !== E_STATUS_VALUES.RUNNING
+          ) {
             exam[E_STATUS] = E_STATUS_VALUES.RUNNING
-            await db_update_exam_v2(exam, `from ${prevStatus} to ${exam[E_STATUS]}`)
-          } else if (vmStatus === "PowerState/starting" && exam[E_STATUS] !== E_STATUS_VALUES.TURNINGON) {
+            await db_update_exam_v2(
+              exam,
+              `from ${prevStatus} to ${exam[E_STATUS]}`
+            )
+          } else if (
+            vmStatus === 'PowerState/starting' &&
+            exam[E_STATUS] !== E_STATUS_VALUES.TURNINGON
+          ) {
             exam[E_STATUS] = E_STATUS_VALUES.TURNINGON
-            await db_update_exam_v2(exam, `from ${prevStatus} to ${exam[E_STATUS]}`)
-          } else if (vmStatus === "PowerState/deallocated" && exam[E_STATUS] !== E_STATUS_VALUES.TURNEDOFF) {
+            await db_update_exam_v2(
+              exam,
+              `from ${prevStatus} to ${exam[E_STATUS]}`
+            )
+          } else if (
+            vmStatus === 'PowerState/deallocated' &&
+            exam[E_STATUS] !== E_STATUS_VALUES.TURNEDOFF
+          ) {
             exam[E_STATUS] = E_STATUS_VALUES.TURNEDOFF
-            await db_update_exam_v2(exam, `from ${prevStatus} to ${exam[E_STATUS]}`)
-          } else if (vmStatus === "PowerState/deallocating" && exam[E_STATUS] !== E_STATUS_VALUES.TURNINGOFF) {
+            await db_update_exam_v2(
+              exam,
+              `from ${prevStatus} to ${exam[E_STATUS]}`
+            )
+          } else if (
+            vmStatus === 'PowerState/deallocating' &&
+            exam[E_STATUS] !== E_STATUS_VALUES.TURNINGOFF
+          ) {
             exam[E_STATUS] = E_STATUS_VALUES.TURNINGOFF
-            await db_update_exam_v2(exam, `from ${prevStatus} to ${exam[E_STATUS]}`)
+            await db_update_exam_v2(
+              exam,
+              `from ${prevStatus} to ${exam[E_STATUS]}`
+            )
           }
 
-          if (!["PowerState/running", "PowerState/starting", "PowerState/deallocated", "PowerState/deallocating"].includes(vmStatus)) {
-            console.error("VM is in a weird state from api " + vmStatus)
+          if (
+            ![
+              'PowerState/running',
+              'PowerState/starting',
+              'PowerState/deallocated',
+              'PowerState/deallocating',
+            ].includes(vmStatus)
+          ) {
+            console.error('VM is in a weird state from api ' + vmStatus)
             console.error(exam)
             console.error(vmRawStatus)
           }
         } catch (e) {
-          console.error("Error while trying to get status of vm from azure")
+          console.error('Error while trying to get status of vm from azure')
           console.error(e)
         }
-      } else if (exam[E_STATUS] === E_STATUS_VALUES.DESTROYED) { // what to do if exam is already stopped
+      } else if (exam[E_STATUS] === E_STATUS_VALUES.DESTROYED) {
+        // what to do if exam is already stopped
       } else {
-        console.error("Exam is in an invalid state")
+        console.error('Exam is in an invalid state')
         console.log(exam)
       }
     }
@@ -105,15 +172,15 @@ const CurrentExamsPage = () => {
       //exam[E_SHARED_DOC_RESP] = await grant_access_to_doc(doc, email)
       //await db_update_exam_v2(exam, "allowed student to access the doc")
 
-      const email_subject = "OSNAP - istruzioni accesso macchina remota"
+      const email_subject = 'OSNAP - istruzioni accesso macchina remota'
       const email_body = `
 <b>Questa mail contiene informazioni private, non inoltrare o condividere in altro modo il suo contenuto.</b><br/><br/>
-Ciao ${email.split("@")[0]},<br/>
+Ciao ${email.split('@')[0]},<br/>
 la seguente e-mail contiene le istruzioni per accedere alla macchina remota a te riservata per sostenere l'esame.<br/>
 La macchina remota sarà disponibile <b>solo quando la sessione d'esame sarà avviata</b>.<br/><br/>
 Per accedere all'esame <b>scarica ed apri il file allegato</b>. Se richiesto, usa la password indicata in questa mail.<br/><br/>
 In alternativa, collegati manualmente tramite RDP (Remote Desktop Protocol) usando queste impostazioni:<br/>
-<pre>IP: ${exam["ipaddr"].properties.ipAddress}
+<pre>IP: ${exam['ipaddr'].properties.ipAddress}
 Porta: 3389
 User: ${exam[E_USERUSER]}
 Password: ${exam[E_USERPASS]}</pre><br/>
@@ -127,17 +194,19 @@ D.: Cosa fare compare una schermata con scritto "Impossibile verificare l'identi
 R.: <b>Cliccare su "Si".</b><br/>
 <img src="https://drrek.github.io/OsnapExamsOnCloud/rdp-warn-2.png" alt="" width="400"/><br/>`
 
-      const file = `full address:s:${exam["ipaddr"].properties.ipAddress}:3389\nusername:s:${exam[E_USERUSER]}\npassword:s:${exam[E_USERPASS]}\nredirectclipboard:i:0\ndynamic resolution:i:1\nsmart sizing:i:1`
+      const file = `full address:s:${exam['ipaddr'].properties.ipAddress}:3389\nusername:s:${exam[E_USERUSER]}\npassword:s:${exam[E_USERPASS]}\nredirectclipboard:i:0\ndynamic resolution:i:1\nsmart sizing:i:1`
 
-      const attachments = [{
-        "@odata.type": "#microsoft.graph.fileAttachment",
-        "name": `${exam["name"]}-vm-access.rdp`,
-        "contentBytes": btoa(file),
-        "contentType": "text/plain"
-      }]
+      const attachments = [
+        {
+          '@odata.type': '#microsoft.graph.fileAttachment',
+          name: `${exam['name']}-vm-access.rdp`,
+          contentBytes: btoa(file),
+          contentType: 'text/plain',
+        },
+      ]
 
       await send_email(email, email_subject, email_body, attachments)
-      await db_update_exam_v2(exam, "start exam email sent")
+      await db_update_exam_v2(exam, 'start exam email sent')
     }
 
     setSendingloginemail(false)
@@ -154,16 +223,16 @@ R.: <b>Cliccare su "Si".</b><br/>
 
       try {
         //disable access to doc
-        console.log(exam[E_CREATE_DOC_RESP]["body"]["name"])
-        if (exam[E_CREATE_DOC_RESP]["body"]["name"]) {
-          await remove_access_to_doc(exam[E_CREATE_DOC_RESP]["body"]["name"])
+        console.log(exam[E_CREATE_DOC_RESP]['body']['name'])
+        if (exam[E_CREATE_DOC_RESP]['body']['name']) {
+          await remove_access_to_doc(exam[E_CREATE_DOC_RESP]['body']['name'])
         }
       } catch (e) {
-        console.error("Error in destroyExams for doc")
+        console.error('Error in destroyExams for doc')
         console.error(e)
       }
 
-      await db_update_exam_v2(exam, "stopping exam")
+      await db_update_exam_v2(exam, 'stopping exam')
     }
     setStoppingexams(false)
     setSelectedExams([])
@@ -201,36 +270,68 @@ R.: <b>Cliccare su "Si".</b><br/>
     refreshExams()
   }, [])
 
-  const [dialogConfirmationEmailOpen, setDialogConfirmationEmailOpen] = useState(false)
-  const [dialogConfirmationDestroyOpen, setDialogConfirmationDestroyOpen] = useState(false)
+  const [dialogConfirmationEmailOpen, setDialogConfirmationEmailOpen] =
+    useState(false)
+  const [dialogConfirmationDestroyOpen, setDialogConfirmationDestroyOpen] =
+    useState(false)
 
-  const [dowloadingDesktop, setDownloadingDesktop] = useState(false)
+  const advancedSetNotification = (notification, forceAdd = false) => {
+    setNotifications((prev) => {
+      if (forceAdd || prev[notification.id]) {
+        return {
+          ...prev,
+          [notification.id]: {
+            ...(prev[notification.id] || {}),
+            ...notification,
+          },
+        }
+      } else {
+        return prev
+      }
+    })
+  }
+
   const downloadDesktop = async () => {
-    setDownloadingDesktop(true)
+    const key = Math.floor(Math.random() * 10000) //this is just used as random key on the frontend
+    advancedSetNotification({
+      header: 'Download ' + selectedExams[0]['id'] + ' resources',
+      type: 'info',
+      content: 'Ongoing download from Azure backup repository',
+      dismissible: true,
+      dismissLabel: 'Dismiss message',
+      onDismiss: () => setNotifications((prev) => ({ ...prev, [key]: null })),
+      id: key,
+    }, true)
     try {
       if (!selectedExams || selectedExams.length != 1) {
-        console.error("Trying to export desktop while selecting more than one exam")
+        console.error(
+          'Trying to export desktop while selecting more than one exam'
+        )
       } else {
-        const id = selectedExams[0]["id"]
-        const containerName = selectedExams[0]["storage_container_name"]
+        const id = selectedExams[0]['id']
+        const containerName = selectedExams[0]['storage_container_name']
         await downloadExamDesktop(id, containerName)
       }
+      advancedSetNotification({
+        type: 'success',
+        content: 'Resources downloaded',
+        id: key,
+      })
     } catch (error) {
-      if (error.message.includes("The specified container does not exist.")) {
-        setNotifications([{
-          header: "Failed to download "+selectedExams[0]["id"]+" desktop",
-          type: "error",
-          content: "Perhaps it was deleted by azure? Try clickin on \"Student desktops backup\".",
-          dismissible: true,
-          dismissLabel: "Dismiss message",
-          onDismiss: () => setNotifications([]),
-          id: "message_1"
-        }])
+      if (error.message.includes('The specified container does not exist.') || error.message.includes('No files to dowload')) {
+        advancedSetNotification({
+          type: 'error',
+          content: 'Error: '+error.message,
+          id: key,
+        }, true)
       } else {
+        advancedSetNotification({
+          type: 'error',
+          content: 'Unknown Error: '+error,
+          id: key,
+        }, true)
         throw error
       }
-    } finally {
-      setDownloadingDesktop(false)
     }
   }
 
@@ -241,7 +342,9 @@ R.: <b>Cliccare su "Si".</b><br/>
           <CurrentExamsTable
             exams={exams}
             selectedExams={selectedExams}
-            onSelectionChange={event => setSelectedExams(event.detail.selectedItems)}
+            onSelectionChange={(event) =>
+              setSelectedExams(event.detail.selectedItems)
+            }
             refreshing={refreshing}
             onRefresh={refreshExams}
             sendingloginemail={sendingloginemail}
@@ -252,32 +355,50 @@ R.: <b>Cliccare su "Si".</b><br/>
             onTurnOn={turnOnVMs}
             turningOff={turningOff}
             turningOn={turningOn}
-            dowloadingDesktop={dowloadingDesktop}
             downloadDesktop={downloadDesktop}
           />
-          <DialogConfirmationEmail selectedExams={selectedExams} onClose={() => setDialogConfirmationEmailOpen(false)} onConfirm={() => { sendEmail(); setDialogConfirmationEmailOpen(false) }} visible={dialogConfirmationEmailOpen} />
-          <DialogConfirmationDestroy selectedExams={selectedExams} onClose={() => setDialogConfirmationDestroyOpen(false)} onConfirm={() => { destroyExams(); setDialogConfirmationDestroyOpen(false) }} visible={dialogConfirmationDestroyOpen} />
+          <DialogConfirmationEmail
+            selectedExams={selectedExams}
+            onClose={() => setDialogConfirmationEmailOpen(false)}
+            onConfirm={() => {
+              sendEmail()
+              setDialogConfirmationEmailOpen(false)
+            }}
+            visible={dialogConfirmationEmailOpen}
+          />
+          <DialogConfirmationDestroy
+            selectedExams={selectedExams}
+            onClose={() => setDialogConfirmationDestroyOpen(false)}
+            onConfirm={() => {
+              destroyExams()
+              setDialogConfirmationDestroyOpen(false)
+            }}
+            visible={dialogConfirmationDestroyOpen}
+          />
         </>
-
       }
       headerSelector="#header"
       breadcrumbs={
         <BreadcrumbGroup
-          items={[
-            { text: 'ExamsOnTheCloud', href: '/' }
-          ]}
+          items={[{ text: 'ExamsOnTheCloud', href: '/' }]}
           expandAriaLabel="Show path"
           ariaLabel="Breadcrumbs"
         />
       }
-      notifications={<Flashbar items={notifications} />}
+      notifications={
+        <Flashbar
+          items={Object.keys(notifications)
+            .filter((key) => notifications[key])
+            .map((key) => notifications[key])}
+        />
+      }
       navigation={<ServiceNavigation />}
       //navigationOpen={false}
       ariaLabels={appLayoutLabels}
       contentType="table"
       tools={HelpOnSide}
     />
-  );
+  )
 }
 
 const HelpOnSide = (
@@ -294,27 +415,51 @@ const HelpOnSide = (
       <ul>
         <li>
           <h5>Create the environment</h5>
-          <div>Click on the "Create Exam" button to create environments for each student.</div>
+          <div>
+            Click on the "Create Exam" button to create environments for each
+            student.
+          </div>
         </li>
         <li>
           <h5>Wait for environments to be ready</h5>
-          <div>Wait for all the created environments to have status "Running". This step might take up to <b>5 minutes</b>, click the "Refresh" button to check for updates.</div>
+          <div>
+            Wait for all the created environments to have status "Running". This
+            step might take up to <b>5 minutes</b>, click the "Refresh" button
+            to check for updates.
+          </div>
         </li>
         <li>
           <h5>Start the exam</h5>
-          <div>Select all the exams that have to start and click on "Send Email". An email will be sent to each partecipant with instruction on how to login.</div>
+          <div>
+            Select all the exams that have to start and click on "Send Email".
+            An email will be sent to each partecipant with instruction on how to
+            login.
+          </div>
         </li>
         <li>
           <h5>End the exam</h5>
-          <div>At the end of the exam, connect as Admin, copy the exam artifacts to the cloud, select the exams you want to terminate and click on "Destroy VM". All the resources created for the student not manually backend up will be destroyed.</div>
+          <div>
+            At the end of the exam, connect as Admin, copy the exam artifacts to
+            the cloud, select the exams you want to terminate and click on
+            "Destroy VM". All the resources created for the student not manually
+            backend up will be destroyed.
+          </div>
         </li>
         <li>
           <h5>Check resource groups are terminated</h5>
-          <div>Make sure after max 5 minutes all the exams have status "Destroyed". Navigate to "Resource groups" on the azure console and make sure that there are no running resources.<b>Missing to do this steps might cause unwanted expenses on the cloud.</b></div>
+          <div>
+            Make sure after max 5 minutes all the exams have status "Destroyed".
+            Navigate to "Resource groups" on the azure console and make sure
+            that there are no running resources.
+            <b>
+              Missing to do this steps might cause unwanted expenses on the
+              cloud.
+            </b>
+          </div>
         </li>
       </ul>
     </div>
   </HelpPanel>
-);
+)
 
 export default CurrentExamsPage
