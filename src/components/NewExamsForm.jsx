@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Container,
   Header,
@@ -26,10 +26,11 @@ import {
   change_vm_passwords,
   create_budget_alert,
   create_storage_container,
-  create_storage_container_sas
+  create_storage_container_sas,
+  list_sharepoint_folder
 } from '../utils/api';
 import pwlib from '../utils/pwlib'
-import { APP_PREFIX, E_EMAIL, E_EXAM_DURATION, E_LOGS, E_STATUS, E_STATUS_VALUES, E_EXAM_VM_INSTANCE_TYPE } from '../utils/constants'
+import { APP_PREFIX, E_EMAIL, E_EXAM_DURATION, E_LOGS, E_STATUS, E_STATUS_VALUES, E_EXAM_VM_INSTANCE_TYPE, E_EXAM_VM_SOURCE_ZIP_DESKTOP } from '../utils/constants'
 import { useHistory } from 'react-router-dom';
 import { internal_navigate } from '../utils/navigation';
 
@@ -42,7 +43,31 @@ const INSTANCE_TYPE_OPTIONS = [
   //{ label: "Prova 3 - Standard_NV6ads_A10_v5", value: "Standard_NV6ads_A10_v5" },
 ]
 
+const EMPTY_FILE_DESKTOP_ZIP = { label: "Do NOT extract a zip in the desktop", value: null }
+
 export default function ExamsPanel({ exam, onChange }) {
+
+  const [isReloadingFiles, setIsReloadingFiles] = useState(true)
+  const [possibleFiles, setPossibleFiles ] = useState([EMPTY_FILE_DESKTOP_ZIP])
+
+  const reloadFiles = async () => {
+    try {
+      setIsReloadingFiles(true)
+      const response = await list_sharepoint_folder("b!HrSeeXxdjU2EpaksQid9vM6FejzETzFNjTE35ifJd5jF2Nr5uM6PSYxKjopeCqAo", "01CTVLZNTILK7MSGSRWJAZIVEX56QFO7VA")
+      if(response && response.length > 0)
+        setPossibleFiles([
+          EMPTY_FILE_DESKTOP_ZIP,
+          ...response.filter(i => i.name.endsWith(".zip")).map(i => ({ label: i.name, value: i }))
+        ])
+    } finally {
+      setIsReloadingFiles(false)
+    }
+  }
+
+  useEffect(() => {
+    reloadFiles()
+  }, [])
+
   return (
     <Container
       id="exams-panel"
@@ -103,6 +128,31 @@ export default function ExamsPanel({ exam, onChange }) {
             options={INSTANCE_TYPE_OPTIONS}      
             selectedAriaLabel="Selected"    
           />
+        </FormField>
+        <FormField
+          description={
+            <>
+              Select the zip file you want to extract into the Desktop.{' '}
+              <a href="https://osnap-my.sharepoint.com/my?id=%2Fpersonal%2Finfo%5Fosnap%5Fit%2FDocuments%2FExamsOnTheCloud&ga=1" target="_blank" rel="noopener noreferrer">
+                You can add more zip files here.
+              </a>
+            </>
+          }
+          label="ZIP Exam Files"
+          errorText={exam[E_EXAM_VM_SOURCE_ZIP_DESKTOP]?.error}
+          i18nStrings={{ errorIconAriaLabel: 'Error' }}
+        >
+          <Select
+            selectedOption={exam[E_EXAM_VM_SOURCE_ZIP_DESKTOP]?.value}
+            onChange={({ detail }) =>
+              onChange(E_EXAM_VM_SOURCE_ZIP_DESKTOP, detail.selectedOption)
+            }
+            options={possibleFiles}
+            selectedAriaLabel="Selected"
+          />
+          <Button variant="link" onClick={() => reloadFiles()} loading={isReloadingFiles} >
+            Reload ZIP files list
+          </Button>
         </FormField>
       </SpaceBetween>
     </Container>
@@ -280,7 +330,7 @@ export function NewExamsForm() {
         exam["userUsername"] = "studente"
         exam["userPassword"] = pwlib.generate_user_password()
         await db_update_exam_v2(exam, "choosen password combination for low-priv user")
-        exam["createUser"] = await change_vm_passwords(exam["id"], exam["adminPassword"], exam["userPassword"], exam["storage_container_name"], exam["storage_container_sas"].serviceSasToken)
+        exam["createUser"] = await change_vm_passwords(exam["id"], exam["adminPassword"], exam["userPassword"], exam["storage_container_name"], exam["storage_container_sas"].serviceSasToken, raw_exam?.[E_EXAM_VM_SOURCE_ZIP_DESKTOP]?.value?.value?.["@microsoft.graph.downloadUrl"] || null)
         await db_update_exam_v2(exam, "sent command to create low-priv user")
 
         //CLOUDFILE

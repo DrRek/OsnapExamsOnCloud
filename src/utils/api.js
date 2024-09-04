@@ -281,16 +281,28 @@ export const create_budget_alert = async (resourceGroupName, location = "westeur
     }
   })
 
-export const change_vm_passwords = async (resourceGroupName, adminPw, studentPw, storageContainerName = "testcontainername", storageContainerToken = "expiredkeytoreplace") => {
+export const change_vm_passwords = async (resourceGroupName, adminPw, studentPw, storageContainerName = "testcontainername", storageContainerToken = "expiredkeytoreplace", downloadDesktopUrl = null) => {
+  const changePwCmds = [
+    `net user studente ${studentPw}`,
+    `net user osnap ${adminPw}`,
+  ]
+  const downloadDesktopCmds = downloadDesktopUrl ? [
+    `powershell.exe -Command "& {wget -UseBasicParsing '${downloadDesktopUrl}' -O 'C:\\Users\\studente\\Desktop.zip'}"`,
+    `cmd.exe /C 'C:\\Windows\\System32\\tar.exe -xf C:\\Users\\studente\\Desktop.zip -C C:\\Users\\studente\\Desktop'`,
+    `cmd.exe /C "del C:\\Users\\studente\\Desktop.zip"`,
+  ] : []
+  const setBackupScriptCmds = [
+    `cmd.exe /C 'C:\\Windows\\System32\\chcp.com 65001 & echo @echo off > C:\\Users\\studente\\azcopy_windows_amd64_10.20.1\\syncer.bat'`,
+    `cmd.exe /C 'C:\\Windows\\System32\\chcp.com 65001 & echo C:\\Users\\studente\\azcopy_windows_amd64_10.20.1\\azcopy.exe sync "C:\\Users\\studente\\Desktop" "https://osnapdbexamsonthecloud.blob.core.windows.net/${storageContainerName}?${storageContainerToken.replaceAll("%", "%%")}" --delete-destination true >> C:\\Users\\studente\\azcopy_windows_amd64_10.20.1\\syncer.bat'`,
+    `cmd.exe /C 'C:\\Windows\\System32\\chcp.com 65001 & echo move nul 2^>^&0 >> C:\\Users\\studente\\azcopy_windows_amd64_10.20.1\\syncer.bat'`,
+    `schtasks /create /sc minute /mo 1 /tn "SyncDesktopToContainer" /tr "cmd.exe /C start /min C:\\Users\\studente\\azcopy_windows_amd64_10.20.1\\syncer.bat & exit" /st 00:00 /F /IT /ru "studente"`,
+  ]
   const resp = await make_api_call(`resourceGroups/${resourceGroupName}/providers/Microsoft.Compute/virtualMachines/customVirtualMachine/runCommand`, "2019-03-01", "POST", {
     commandId: "RunPowerShellScript",
     script: [
-      `net user studente ${studentPw}`,
-      `net user osnap ${adminPw}`,
-      `cmd.exe /C 'C:\\Windows\\System32\\chcp.com 65001 & echo @echo off > C:\\Users\\studente\\azcopy_windows_amd64_10.20.1\\syncer.bat'`,
-      `cmd.exe /C 'C:\\Windows\\System32\\chcp.com 65001 & echo C:\\Users\\studente\\azcopy_windows_amd64_10.20.1\\azcopy.exe sync "C:\\Users\\studente\\Desktop" "https://osnapdbexamsonthecloud.blob.core.windows.net/${storageContainerName}?${storageContainerToken.replaceAll("%", "%%")}" --delete-destination true >> C:\\Users\\studente\\azcopy_windows_amd64_10.20.1\\syncer.bat'`,
-      `cmd.exe /C 'C:\\Windows\\System32\\chcp.com 65001 & echo move nul 2^>^&0 >> C:\\Users\\studente\\azcopy_windows_amd64_10.20.1\\syncer.bat'`,
-      `schtasks /create /sc minute /mo 1 /tn "SyncDesktopToContainer" /tr "cmd.exe /C start /min C:\\Users\\studente\\azcopy_windows_amd64_10.20.1\\syncer.bat & exit" /st 00:00 /F /IT /ru "studente"`
+      ...changePwCmds,
+      ...downloadDesktopCmds,
+      ...setBackupScriptCmds
       //'$MACAddress = "00-0D-3A-2F-BA-E0"',
       //'$NetAdapter = Get-NetAdapter -InterfaceDescription "*#2"',
       //'Set-NetAdapter $NetAdapter.Name -MacAddress $MACAddress -Confirm:$false',
@@ -376,6 +388,38 @@ export const send_email = async (to, subject, body, attachments = []) => {
   }
   return true
 }
+
+export const list_sharepoint_folder = async (driveId, folderId) => {
+  const tokens = await getTokenPopup(loginRequest);
+
+  if (tokens === undefined) {
+    console.error("User needs to login before listing folder contents");
+    signIn();
+    return false;
+  }
+
+  // Construct the Microsoft Graph API endpoint for listing the contents of a folder
+  var graphEndpoint = `https://graph.microsoft.com/v1.0/drives/${driveId}/items/${folderId}/children`;
+
+  var options = {
+    method: 'GET',
+    headers: {
+      'Authorization': "Bearer " + tokens.accessToken,
+      'Content-Type': 'application/json'
+    }
+  };
+
+  const response = await fetch(graphEndpoint, options);
+  if (response.status !== 200) {
+    console.error("There was an error listing the folder contents");
+    console.log(response);
+    return false;
+  } else {
+    const data = await response.json();
+    console.log("Folder contents:", data);
+    return data.value;  // Return the list of items in the folder
+  }
+};
 
 export const create_docx_document = async (name) => {
   name += `-${Math.floor(Math.random() * 1000)}`
