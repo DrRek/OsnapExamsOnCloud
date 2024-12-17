@@ -6,7 +6,7 @@ import { TableHeader } from './TableHeader';
 import { useHistory } from 'react-router-dom';
 import { E_ADMINPASS, E_ADMINUSER, E_EMAIL, E_ID, E_LOGS, E_STATUS, E_STATUS_VALUES, E_USERPASS, E_USERUSER } from '../utils/constants';
 import Moment from 'react-moment';
-import { get_resource_group_link } from '../utils/api';
+import { get_resource_group_link, get_desktop_backup_link } from '../utils/api';
 import { saveAs } from 'file-saver';
 import { ErrorBoundary } from "react-error-boundary";
 
@@ -23,6 +23,12 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
     sortingField: 'email',
     header: 'Student',
     cell: item => item[E_EMAIL],
+    minWidth: 120,
+  },
+  {
+    id: 'desktopbackup',
+    header: 'Desktop Backup',
+    cell: item => item["storage_container_name"] ? <Link external href={get_desktop_backup_link(item["storage_container_name"])}>Desktop</Link> : 'unavailable',
     minWidth: 120,
   },
   {

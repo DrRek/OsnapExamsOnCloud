@@ -1,6 +1,6 @@
 import { signIn, getTokenPopup } from './authPopup'
 import { dbTokenRequest, loginRequest, tokenRequest } from './authConfig';
-import { APP_PREFIX, E_CREATE_USER_REQ, E_LOGS, E_STATUS_VALUES, SUB_ID } from './constants';
+import { E_CREATE_USER_REQ, E_LOGS, E_STATUS_VALUES, SUB_ID } from './constants';
 import moment from 'moment';
 
 async function sleep(ms) {
@@ -69,6 +69,9 @@ export const check_resource_group_existance = async name => {
 
 export const get_resource_group_link = name =>
   `https://portal.azure.com/#@osnap.it/resource/subscriptions/${SUB_ID}/resourceGroups/${name}`
+
+export const get_desktop_backup_link = name =>
+  `https://portal.azure.com/#view/Microsoft_Azure_Storage/ContainerMenuBlade/~/overview/storageAccountId/%2Fsubscriptions%2F${SUB_ID}%2FresourceGroups%2FManagment-ExamsOnTheCloud%2Fproviders%2FMicrosoft.Storage%2FstorageAccounts%2Fosnapdbexamsonthecloud/path/${name}/etag/%220x8DD1E90F30C06CA%22/defaultEncryptionScope/%24account-encryption-key/denyEncryptionScopeOverride~/false/defaultId//publicAccessVal/None`
 
 export const list_resource_groups = async () =>
   (await make_api_call("resourcegroups", "2021-04-01")).value
