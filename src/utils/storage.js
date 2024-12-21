@@ -5,7 +5,7 @@ import FileSaver from 'file-saver'
 
 const account_name = 'osnapdbexamsonthecloud'
 
-const PATH_FILTER = 'DOCUMENTAZIONE ESAME'
+const PATH_FILTER = 'prova pratica'
 
 const downloadExamDesktop = async (
   id,
@@ -22,14 +22,14 @@ const downloadExamDesktop = async (
 
   const blobNames = []
   for await (const blob of containerClient.listBlobsFlat()) {
-    if (blob.name.includes(path_filter) && !blob.name.endsWith("desktop.ini")) {
+    if (blob.name.toLowerCase().includes(path_filter.toLocaleLowerCase()) && !blob.name.endsWith("desktop.ini")) {
       blobNames.push(blob.name)
     }
   }
 
-  if (blobNames.length == 0) {
+  if (blobNames.length === 0) {
     throw new Error(
-      'No files to dowload, has the student placed the material in the path matching "' +
+      'No files to dowload, has the student placed the material in a path containing the case-unsensitive word "' +
         path_filter +
         '"?'
     )
