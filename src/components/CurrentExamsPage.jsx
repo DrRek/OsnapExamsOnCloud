@@ -194,7 +194,7 @@ D.: Cosa fare compare una schermata con scritto "Impossibile verificare l'identi
 R.: <b>Cliccare su "Si".</b><br/>
 <img src="https://drrek.github.io/OsnapExamsOnCloud/rdp-warn-2.png" alt="" width="400"/><br/>`
 
-      const file = `full address:s:${exam['ipaddr'].properties.ipAddress}:3389\nusername:s:${exam[E_USERUSER]}\npassword:s:${exam[E_USERPASS]}\nredirectclipboard:i:0\ndynamic resolution:i:1\nsmart sizing:i:1`
+      const file = `full address:s:${exam['ipaddr'].properties.ipAddress}:3389\nusername:s:${exam[E_USERUSER]}\npassword:s:${exam[E_USERPASS]}\nredirectclipboard:i:0\ndynamic resolution:i:1\nsmart sizing:i:1\nredirectprinters:i:0`
 
       const attachments = [
         {
@@ -292,9 +292,16 @@ R.: <b>Cliccare su "Si".</b><br/>
   }
 
   const downloadDesktop = async () => {
-    const key = Math.floor(Math.random() * 10000) //this is just used as random key on the frontend
+    if (!selectedExams || selectedExams.length === 0) {
+      console.error('No exams selected for download')
+      return
+    }
+
+    const key = Math.floor(Math.random() * 10000) // Random key for frontend
+
+    // Show initial notification
     advancedSetNotification({
-      header: 'Download ' + selectedExams[0]['id'] + ' resources',
+      header: `Download ${selectedExams.length} exam${selectedExams.length > 1 ? 's' : ''} resources`,
       type: 'info',
       content: 'Ongoing download from Azure backup repository',
       dismissible: true,
@@ -302,36 +309,70 @@ R.: <b>Cliccare su "Si".</b><br/>
       onDismiss: () => setNotifications((prev) => ({ ...prev, [key]: null })),
       id: key,
     }, true)
+
     try {
-      if (!selectedExams || selectedExams.length != 1) {
-        console.error(
-          'Trying to export desktop while selecting more than one exam'
-        )
-      } else {
-        const id = selectedExams[0]['id']
-        const containerName = selectedExams[0]['storage_container_name']
-        await downloadExamDesktop(id, containerName)
-      }
-      advancedSetNotification({
-        type: 'success',
-        content: 'Resources downloaded',
-        id: key,
+      const downloadPromises = selectedExams.map(async (exam) => {
+        const id = exam['id']
+        const containerName = exam['storage_container_name']
+
+        try {
+          await downloadExamDesktop(id, containerName)
+          return { success: true, examId: id }
+        } catch (error) {
+          return { success: false, examId: id, error: error.message }
+        }
       })
-    } catch (error) {
-      if (error.message.includes('The specified container does not exist.') || error.message.includes('No files to dowload')) {
+
+      const results = await Promise.allSettled(downloadPromises)
+
+      // Process results
+      const successful = results.filter(result =>
+        result.status === 'fulfilled' && result.value.success
+      )
+      const failed = results.filter(result =>
+        result.status === 'rejected' ||
+        (result.status === 'fulfilled' && !result.value.success)
+      )
+
+      if (failed.length === 0) {
+        // All downloads successful
+        advancedSetNotification({
+          type: 'success',
+          content: `All ${selectedExams.length} exam resources downloaded successfully`,
+          id: key,
+        })
+      } else if (successful.length === 0) {
+        // All downloads failed
+        const errorMessages = failed.map(result => {
+          const error = result.status === 'rejected' ? result.reason : result.value.error
+          return error
+        })
+
         advancedSetNotification({
           type: 'error',
-          content: 'Error: '+error.message,
+          content: `Failed to download exam resources: ${errorMessages.join(', ')}`,
           id: key,
         }, true)
+
+        // Throw the first error for consistency with original behavior
+        throw new Error(errorMessages[0])
       } else {
+        // Partial success
         advancedSetNotification({
-          type: 'error',
-          content: 'Unknown Error: '+error,
+          type: 'warning',
+          content: `Downloaded ${successful.length} of ${selectedExams.length} exams. Errors: ${failed.map(result => `${result?.value?.examId}`).join(' - ')}`,
           id: key,
-        }, true)
-        throw error
+        })
       }
+
+    } catch (error) {
+      // Handle any unexpected errors
+      advancedSetNotification({
+        type: 'error',
+        content: 'Unknown Error: ' + error,
+        id: key,
+      }, true)
+      throw error
     }
   }
 

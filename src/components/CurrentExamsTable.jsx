@@ -71,7 +71,7 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
         <div>error</div>
       }>
         <Button iconName="download" variant="inline-icon" onClick={() => {
-          const file = new Blob([`full address:s:${item["ipaddr"].properties.ipAddress}:3389\nusername:s:${item[E_ADMINUSER]}\npassword:s:${item[E_ADMINPASS]}\nredirectclipboard:i:1\ndynamic resolution:i:1\nsmart sizing:i:1`], {type: "text/plain;charset=utf-8"});
+          const file = new Blob([`full address:s:${item["ipaddr"].properties.ipAddress}:3389\nusername:s:${item[E_ADMINUSER]}\npassword:s:${item[E_ADMINPASS]}\nredirectclipboard:i:1\ndynamic resolution:i:1\nsmart sizing:i:1\nredirectprinters:i:0`], {type: "text/plain;charset=utf-8"});
           saveAs(
             file,
             item[E_ID].replace("ExamsOnTheCloud-","")+'-admin.rdp'
@@ -103,7 +103,7 @@ const COLUMN_DEFINITIONS = addColumnSortLabels([
     cell: item => 
     <>
       <Button iconName="download" variant="inline-icon" aria-label="asd" onClick={() => {
-        const file = new Blob([`full address:s:${item["ipaddr"].properties.ipAddress}:3389\nusername:s:${item[E_USERUSER]}\npassword:s:${item[E_USERPASS]}\nredirectclipboard:i:1\ndynamic resolution:i:1\nsmart sizing:i:1`], {type: "text/plain;charset=utf-8"});
+        const file = new Blob([`full address:s:${item["ipaddr"].properties.ipAddress}:3389\nusername:s:${item[E_USERUSER]}\npassword:s:${item[E_USERPASS]}\nredirectclipboard:i:1\ndynamic resolution:i:1\nsmart sizing:i:1\nredirectprinters:i:0`], {type: "text/plain;charset=utf-8"});
         saveAs(
           file,
           item[E_ID].replace("ExamsOnTheCloud-","")+'-student.rdp'
@@ -185,7 +185,7 @@ export default function CurrentExamsTable({ exams, selectedExams, onSelectionCha
                   { text: "Turn off VM", id: "turnoffvm", disabled: selectedExams.length === 0 || stoppingexams, loading: turningOff, disabledReason: "Select at least one valid exam" },
                   { text: "Send Email", id: "sendemail", disabled: selectedExams.length === 0 || sendingloginemail, loading: sendingloginemail, disabledReason: "Select at least one valid exam" },
                   { text: "Destroy Exam VM", id: "destroyexamvm", disabled: selectedExams.length === 0 || stoppingexams, loading: stoppingexams, disabledReason: "Select at least one valid exam" },
-                  { text: "Download desktop in zip", id: "downloaddesktop", disabled: !selectedExams || selectedExams.length != 1, loading: false, disabledReason: "Select one exam to export" },
+                  { text: "Download desktop in zip", id: "downloaddesktop", disabled: selectedExams.length === 0 || stoppingexams, loading: false, disabledReason: "Select at least one valid exam" },
                 ]}
                 onItemClick={({detail:{id}}) => {
                   if(id === "turnonvm")

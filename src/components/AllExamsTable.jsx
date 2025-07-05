@@ -79,7 +79,7 @@ export default function AllExamsTable({ exams, selectedExams, onSelectionChange,
               <ButtonDropdown
                 items={[
                   { text: "Show all logs", id: "showalllogs", disabled: selectedExams.length === 0, disabledReason: "Select at least one exam" },
-                  { text: "Download desktop in zip", id: "downloaddesktop", disabled: !selectedExams || selectedExams.length != 1, loading: false, disabledReason: "Select one exam to export" },
+                  { text: "Download desktop in zip", id: "downloaddesktop", disabled: selectedExams.length === 0, loading: false, disabledReason: "Select at least one exam" },
                   ...onlyLocalhostActions
                 ]}
                 onItemClick={({detail:{id}}) => {
