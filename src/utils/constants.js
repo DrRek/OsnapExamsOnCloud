@@ -27,6 +27,7 @@ export const E_LATEST_TURNON_RESP = "latestturnonreq"
 export const E_LATEST_TURNOFF_RESP = "latestturnoffreq"
 export const E_EXAM_DURATION = "examduration"
 export const E_EXAM_VM_INSTANCE_TYPE = "vminstancetype"
+export const E_EXAM_VM_INSTANCE_IMAGE = "vminstanceimage"
 export const E_EXAM_VM_SOURCE_ZIP_DESKTOP = "zipfiletocopytostudentdesk"
 
 export const BASE_PATH = "/OsnapExamsOnCloud"

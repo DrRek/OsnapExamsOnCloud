@@ -12,7 +12,7 @@ import {
   Spinner,
   Select
 } from '@cloudscape-design/components';
-import { 
+import {
   db_is_prefix_unique_v2,
   db_update_exam_v2,
   create_resource_groups,
@@ -30,17 +30,24 @@ import {
   list_sharepoint_folder
 } from '../utils/api';
 import pwlib from '../utils/pwlib'
-import { APP_PREFIX, E_EMAIL, E_EXAM_DURATION, E_LOGS, E_STATUS, E_STATUS_VALUES, E_EXAM_VM_INSTANCE_TYPE, E_EXAM_VM_SOURCE_ZIP_DESKTOP } from '../utils/constants'
+import { APP_PREFIX, E_EMAIL, E_EXAM_DURATION, E_LOGS, E_STATUS, E_STATUS_VALUES, E_EXAM_VM_INSTANCE_TYPE, E_EXAM_VM_INSTANCE_IMAGE, E_EXAM_VM_SOURCE_ZIP_DESKTOP, SUB_ID } from '../utils/constants'
 import { useHistory } from 'react-router-dom';
 import { internal_navigate } from '../utils/navigation';
 
 
 const DEFAULT_INSTANCE_TYPE_OPTION_INDEX = 0
 const INSTANCE_TYPE_OPTIONS = [
-  { label: "Default - Standard_D4s_v3", value: "Standard_D4s_v3" },        
-  { label: "Prova 1 - Standard_D8s_v3", value: "Standard_D8s_v3" },        
+  { label: "3.0 - New (Win 11 compatible) - Standard_D8as_v5", value: "Standard_D8as_v5" },
+  { label: "2.0 - Old (Win 10 compatible) - Standard_D8s_v3", value: "Standard_D8s_v3" },
+  { label: "1.0 - Very Old (Win 10 compatible) - Standard_D4s_v3", value: "Standard_D4s_v3" },
   //{ label: "Prova 2 - Standard_NC4as_T4_v3", value: "Standard_NC4as_T4_v3" },
   //{ label: "Prova 3 - Standard_NV6ads_A10_v5", value: "Standard_NV6ads_A10_v5" },
+]
+
+const DEFAULT_IMAGE_OPTIONS_INDEX = 0
+const IMAGE_OPTIONS = [
+  { label: "Win 11 - 07/11/2025", value: { name: `/subscriptions/${SUB_ID}/resourceGroups/Managment-ExamsOnTheCloud/providers/Microsoft.Compute/galleries/ExamImageGallery/images/Win11_2025_1/versions/latest`, trustedLaunch: true } },
+  { label: "Win 10 - old", value: { name: `/subscriptions/${SUB_ID}/resourceGroups/Managment-ExamsOnTheCloud/providers/Microsoft.Compute/galleries/ExamImageGallery/images/Revit_2023_1/versions/latest`, trustedLaunch: false } }
 ]
 
 const EMPTY_FILE_DESKTOP_ZIP = { label: "Do NOT extract a zip in the desktop", value: null }
@@ -48,13 +55,13 @@ const EMPTY_FILE_DESKTOP_ZIP = { label: "Do NOT extract a zip in the desktop", v
 export default function ExamsPanel({ exam, onChange }) {
 
   const [isReloadingFiles, setIsReloadingFiles] = useState(true)
-  const [possibleFiles, setPossibleFiles ] = useState([EMPTY_FILE_DESKTOP_ZIP])
+  const [possibleFiles, setPossibleFiles] = useState([EMPTY_FILE_DESKTOP_ZIP])
 
   const reloadFiles = async () => {
     try {
       setIsReloadingFiles(true)
       const response = await list_sharepoint_folder("b!HrSeeXxdjU2EpaksQid9vM6FejzETzFNjTE35ifJd5jF2Nr5uM6PSYxKjopeCqAo", "01CTVLZNTILK7MSGSRWJAZIVEX56QFO7VA")
-      if(response && response.length > 0)
+      if (response && response.length > 0)
         setPossibleFiles([
           EMPTY_FILE_DESKTOP_ZIP,
           ...response.filter(i => i.name.endsWith(".zip")).map(i => ({ label: i.name, value: i }))
@@ -120,13 +127,28 @@ export default function ExamsPanel({ exam, onChange }) {
           errorText={exam[E_EXAM_VM_INSTANCE_TYPE].error}
           i18nStrings={{ errorIconAriaLabel: 'Error' }}
         >
-          <Select      
-            selectedOption={exam[E_EXAM_VM_INSTANCE_TYPE].value}      
-            onChange={({ detail }) =>        
-              onChange(E_EXAM_VM_INSTANCE_TYPE, detail.selectedOption) 
-            }      
-            options={INSTANCE_TYPE_OPTIONS}      
-            selectedAriaLabel="Selected"    
+          <Select
+            selectedOption={exam[E_EXAM_VM_INSTANCE_TYPE].value}
+            onChange={({ detail }) =>
+              onChange(E_EXAM_VM_INSTANCE_TYPE, detail.selectedOption)
+            }
+            options={INSTANCE_TYPE_OPTIONS}
+            selectedAriaLabel="Selected"
+          />
+        </FormField>
+        <FormField
+          description="This value is to select the right VM image (Installed OS & software)."
+          label="VM image"
+          errorText={exam[E_EXAM_VM_INSTANCE_IMAGE].error}
+          i18nStrings={{ errorIconAriaLabel: 'Error' }}
+        >
+          <Select
+            selectedOption={exam[E_EXAM_VM_INSTANCE_IMAGE].value}
+            onChange={({ detail }) =>
+              onChange(E_EXAM_VM_INSTANCE_IMAGE, detail.selectedOption)
+            }
+            options={IMAGE_OPTIONS}
+            selectedAriaLabel="Selected"
           />
         </FormField>
         <FormField
@@ -159,7 +181,7 @@ export default function ExamsPanel({ exam, onChange }) {
   );
 }
 
-const ExamLoadingModal = ({text}) =>
+const ExamLoadingModal = ({ text }) =>
   <Modal
     onDismiss={() => alert("this operation cannot be cancelled")}
     visible={text}
@@ -173,7 +195,7 @@ const ExamLoadingModal = ({text}) =>
       flexDirection: "column"
     }}>
       <div>Resource creation might take some minutes. Please wait without closing the page.</div>
-      <Spinner size="large"/>
+      <Spinner size="large" />
       <div>{text}</div>
     </div>
   </Modal>
@@ -226,6 +248,9 @@ export function NewExamsForm() {
     },
     [E_EXAM_VM_INSTANCE_TYPE]: {
       value: INSTANCE_TYPE_OPTIONS[DEFAULT_INSTANCE_TYPE_OPTION_INDEX]
+    },
+    [E_EXAM_VM_INSTANCE_IMAGE]: {
+      value: IMAGE_OPTIONS[DEFAULT_IMAGE_OPTIONS_INDEX]
     }
   })
 
@@ -239,7 +264,7 @@ export function NewExamsForm() {
     })
   }
 
-  const [ loadingText, setLoadingText ] = useState(false)
+  const [loadingText, setLoadingText] = useState(false)
   const com = (msg) => {
     setLoadingText(msg)
     console.log(msg)
@@ -249,11 +274,11 @@ export function NewExamsForm() {
   const go_home = () => internal_navigate("/", history)
 
   const createExam = async () => {
-    if(await isExamValid()){
+    if (await isExamValid()) {
 
       com("creating exams")
       com(`using prefix: ${raw_exam.prefix.value}`)
-      const students_email = raw_exam.raw_students.value.split("\n").map(i=>i.trim()).filter(i => i!=="")
+      const students_email = raw_exam.raw_students.value.split("\n").map(i => i.trim()).filter(i => i !== "")
       com(`using student email: ${students_email}`)
 
       for (const student_email of students_email) {
@@ -292,11 +317,11 @@ export function NewExamsForm() {
         com(`waiting for public IP for ${exam["name"]}`)
         exam["ipaddr"] = await wait_for_ip_address(exam["id"])
         await db_update_exam_v2(exam, `obtained public ip address ${exam["ipaddr"].properties.ipAddress}`)
-        
+
         com(`creating security group for ${exam["name"]}`)
         exam["netsecgrp"] = await create_network_security_group(exam["id"])
         await db_update_exam_v2(exam, "created security group")
-        
+
         com(`creating network interface for ${exam["name"]}`)
         exam["netint"] = await create_network_interface(exam["id"], exam["netsecgrp"].id, exam["subnet"].id, exam["ipaddr"].id)
         await db_update_exam_v2(exam, "created network interface")
@@ -304,17 +329,17 @@ export function NewExamsForm() {
         //com(`creating #2 network interface for ${exam["name"]}`)
         //exam["netint2"] = await create_network_interface_2(exam["id"]+"2", exam["subnet"].id, exam["id"])
         //await db_update_exam_v2(exam, "created #2 network interface")
-        
+
         com(`creating virtual machine for ${exam["name"]}`)
         await db_update_exam_v2(exam, "choosen username/password combination for admin")
-        await create_virtual_machine(exam["id"], exam["netint"].id, raw_exam[E_EXAM_VM_INSTANCE_TYPE]["value"]["value"])
+        await create_virtual_machine(exam["id"], exam["netint"].id, raw_exam[E_EXAM_VM_INSTANCE_TYPE]["value"]["value"], "westeurope", raw_exam[E_EXAM_VM_INSTANCE_IMAGE]["value"]["value"])
         await db_update_exam_v2(exam, "created virtual machine")
 
         com(`creating alert on budget for ${exam["name"]}`)
         await create_budget_alert(exam["id"])
         await db_update_exam_v2(exam, "created alert on buget")
 
-        exam["storage_container_name"] = "c-"+exam["id"].replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase()
+        exam["storage_container_name"] = "c-" + exam["id"].replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase()
 
         com(`creating desktop backup container ${exam["name"]}`)
         exam["storage_container"] = await create_storage_container(exam["storage_container_name"])
@@ -339,7 +364,7 @@ export function NewExamsForm() {
         //await db_update_exam_v2(exam, "created document that will store the exam report")
 
         com(`done creating resources for ${exam["name"]}`)
-      
+
         setLoadingText(false)
       }
       go_home()
@@ -347,18 +372,18 @@ export function NewExamsForm() {
   }
 
   const isExamValid = async () => {
-    const prefixError = 
-      !/[a-zA-Z0-9-]+/.test(raw_exam.prefix.value)  ?
+    const prefixError =
+      !/[a-zA-Z0-9-]+/.test(raw_exam.prefix.value) ?
         "You must specify a string to use as prefix, only use - as special character." :
-        !(await db_is_prefix_unique_v2(raw_exam.prefix.value)) && 
-          "Prefixes should be unique, another exam with this prefix already exists"
+        !(await db_is_prefix_unique_v2(raw_exam.prefix.value)) &&
+        "Prefixes should be unique, another exam with this prefix already exists"
 
     const emailError = (raw_exam.raw_students.value.trim().length === 0 || raw_exam.raw_students.value.split("\n").map(i => i.trim()).filter(i => i !== "").some(i => !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(i))) && "You must specify one valid email for each line."
-    
+
     const durationError = (!/^[0-9]\d*$/.test(raw_exam[E_EXAM_DURATION].value) || raw_exam[E_EXAM_DURATION].value < 1 || raw_exam[E_EXAM_DURATION].value > 10) &&
       "The exam duration is expressed in hours and must be an integer between 1 and 10"
 
-    if(prefixError || emailError || durationError){
+    if (prefixError || emailError || durationError) {
       setExam({
         ...raw_exam,
         prefix: {
@@ -382,7 +407,7 @@ export function NewExamsForm() {
   return (
     <>
       <BaseFormContent
-        onCreate={()=>createExam()}
+        onCreate={() => createExam()}
         onCancel={go_home}
         content={
           <SpaceBetween size="l">
@@ -390,7 +415,7 @@ export function NewExamsForm() {
           </SpaceBetween>
         }
       />
-      <ExamLoadingModal text={loadingText}/>
+      <ExamLoadingModal text={loadingText} />
     </>
   );
 }
