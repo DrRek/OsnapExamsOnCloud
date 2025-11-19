@@ -328,9 +328,7 @@ export const create_virtual_machine = async (
       properties: {
         storageProfile: {
           imageReference: {
-            //To correctly create a virtual machine I have to follow this https://learn.microsoft.com/en-us/azure/virtual-machines/windows/upload-generalized-managed?toc=%252fazure%252fvirtual-machines%252fwindows%252ftoc.json
-            // https://learn.microsoft.com/en-us/azure/virtual-machines/windows/capture-image-resource
-            // You always have to create it as SPECIALIZED
+            // TO CREATE A NEW VIRTUAL MACHINE LOOK AT THE STEPS IN THE README FILE
             id: imageDetails.name,
             //publisher: "MicrosoftWindowsDesktop",
             //offer: "Windows-10",

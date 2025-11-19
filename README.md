@@ -1,3 +1,33 @@
+xfreerdp /v:20.126.159.163 /u:studente /p:"" /dynamic-resolution
+xfreerdp /v:20.126.159.163 /u:osnap /p:"" /dynamic-resolution
+
+
+INSTRUCTIONS
+TO CREATE A NEW COMPLETELY NEW VM
+// To correctly create a virtual machine I have to follow this https://learn.microsoft.com/en-us/azure/virtual-machines/windows/upload-generalized-managed?toc=%252fazure%252fvirtual-machines%252fwindows%252ftoc.json
+// https://learn.microsoft.com/en-us/azure/virtual-machines/windows/capture-image-resource
+// You always have to create it as SPECIALIZED
+// then you always run `net user student <anything> /add` to create the student user
+// then `net localgroup "Remote Desktop Users" studente /add`
+// Then configure the syncing script as such:
+// then download https://drive.google.com/drive/folders/1aUFFmxFHcLxU4RyB0Gb6xkOEL8ChJtmL to C:\Users\studente\azcopy_windows_amd64_10.20.1
+// set language and region to italian (test that the keyboard works correctly with italian layout)
+// once that is finished open the VM in azure
+// stop the machine and capture a new version of the image
+// If possible create a new image version
+// if not possible create a new image gallery and set 0.0.1 as version (if u create a new one you need to update IMAGE_OPTIONS in the NewExamsForm.jsx file)
+// Image capture can take quite some time, wait a bit
+
+// Try to start a VM / test launching as student and see if files gets stored
+
+Clean up
+* Remove unused resource groups
+* Remove old broken images / image versions that are not needed anymore
+
+
+
+
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
