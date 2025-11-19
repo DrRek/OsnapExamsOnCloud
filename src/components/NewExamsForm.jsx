@@ -46,7 +46,7 @@ const INSTANCE_TYPE_OPTIONS = [
 
 const DEFAULT_IMAGE_OPTIONS_INDEX = 0
 const IMAGE_OPTIONS = [
-  { label: "Win 11 - 09/11/2025", value: { name: `/subscriptions/${SUB_ID}/resourceGroups/Managment-ExamsOnTheCloud/providers/Microsoft.Compute/galleries/ExamImageGallery/images/Win11_2025_2/versions/latest`, trustedLaunch: true } },
+  { label: "Win 11 - 19/11/2025", value: { name: `/subscriptions/${SUB_ID}/resourceGroups/Managment-ExamsOnTheCloud/providers/Microsoft.Compute/galleries/ExamImageGallery/images/Win11_2025_2/versions/latest`, trustedLaunch: true } },
   { label: "Win 11 - 07/11/2025", value: { name: `/subscriptions/${SUB_ID}/resourceGroups/Managment-ExamsOnTheCloud/providers/Microsoft.Compute/galleries/ExamImageGallery/images/Win11_2025_1/versions/latest`, trustedLaunch: true } },
   { label: "Win 10 - old", value: { name: `/subscriptions/${SUB_ID}/resourceGroups/Managment-ExamsOnTheCloud/providers/Microsoft.Compute/galleries/ExamImageGallery/images/Revit_2023_1/versions/latest`, trustedLaunch: false } }
 ]
