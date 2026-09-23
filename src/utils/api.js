@@ -142,8 +142,8 @@ export const delete_all_resource_groups = async (prefix) => {
 export const create_virtual_network = async (
   resourceGroupName,
   location = "westeurope"
-) =>
-  make_api_call(
+) => {
+  let virtualNetwork = await make_api_call(
     `resourceGroups/${resourceGroupName}/providers/Microsoft.Network/virtualNetworks/customVirtualNetwork`,
     "2022-07-01",
     "PUT",
@@ -159,6 +159,17 @@ export const create_virtual_network = async (
       },
     }
   );
+
+  while (virtualNetwork?.properties?.provisioningState !== "Succeeded") {
+    await sleep(1000);
+    virtualNetwork = await make_api_call(
+      `resourceGroups/${resourceGroupName}/providers/Microsoft.Network/virtualNetworks/customVirtualNetwork`,
+      "2022-07-01"
+    );
+  }
+
+  return virtualNetwork;
+};
 
 export const create_subnet = async (resourceGroupName) =>
   make_api_call(
